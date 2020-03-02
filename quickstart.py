@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 import pickle
 from dotenv import load_dotenv
 import os
@@ -22,9 +22,40 @@ db = firestore.client()
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 
-SAMPLE_RANGE_NAME = 'Sheet1'
+RANGE_NAME = 'Sheet1'
+
+def calcHits(singles, doubles, triples, home_runs):
+  return singles + doubles + triples + home_runs
+
+def calcAtBats(hits, outs):
+  return hits + outs
+
+def calcOBP(hits, at_bats, base_on_balls, hit_by_pitch):
+  denom = at_bats + base_on_balls + hit_by_pitch
+  if denom == 0:
+    return 'Undefined'
+
+  return round(float((hits + base_on_balls + hit_by_pitch) / denom), 3)
+
+def calcAVG(hits, at_bats):
+  if at_bats == 0:
+    return 'Undefined'
+
+  return round(float(hits / at_bats), 3)
+
+def calcSLG(singles, doubles, triples, home_runs, at_bats):
+  if at_bats == 0:
+    return 'Undefined'
+
+  return round(float((singles + (2 * doubles) + (3 * triples) + (4 * home_runs)) / at_bats), 3)
+
+def calcOPS(obp, slg):
+  if obp == 'Undefined' or slg == 'Undefined':
+    return 'Undefined'
+
+  return round(float(obp + slg), 3) if obp + slg != 0 else 'Undefined'
 
 def main():
     """Shows basic usage of the Sheets API.
@@ -55,9 +86,9 @@ def main():
     sheet = service.spreadsheets()
     
 
-    # get firebase user
+    # get firebase users
     users = db.collection(u'users').stream()
-    name_row = ['Player', '1B', '2B', '3B']
+    name_row = ['Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'OUTS', 'GP']
     values = [name_row, []]
 
     for user in users:
@@ -70,49 +101,83 @@ def main():
 
       games = db.collection(u'games').where(u'player', u'==', full_name).stream()
       
-
+      hits = 0
+      at_bats = 0
+      on_base_percentage = 0
+      slugging = 0
+      on_base_plus_slugging = 0
+      average = 0
       singles = 0
       doubles = 0
       triples = 0
+      home_runs = 0
+      hit_by_pitch = 0
+      base_on_balls = 0
+      runs_batted_in = 0
+      strikeouts = 0
+      stolen_bases = 0
+      outs = 0
+
+      games_played = 0
+
       sheet_row = []
 
+      # Summing up all the stats for a player
       for game in games: 
         stats = game.to_dict()
+
         singles += stats.get('singles')
         doubles += stats.get('doubles')
         triples += stats.get('triples')
+        home_runs += stats.get('homeRuns')
+        hit_by_pitch += stats.get('hitByPitch')
+        base_on_balls += stats.get('baseOnBalls')
+        runs_batted_in += stats.get('runsBattedIn')
+        strikeouts += stats.get('strikeouts')
+        stolen_bases += stats.get('stolenBases')
+        outs += stats.get('outs')
 
+        games_played += 1
+
+      # Calculate stats
+      hits = calcHits(singles, doubles, triples, home_runs)
+      at_bats = calcAtBats(hits, outs)
+      on_base_percentage = calcOBP(hits, at_bats, base_on_balls, hit_by_pitch)
+      average = calcAVG(hits, at_bats)
+      slugging = calcSLG(singles, doubles, triples, home_runs, at_bats)
+      on_base_plus_slugging = calcOPS(on_base_percentage, slugging)
+
+      # append stats to row
       sheet_row.append(full_name)
+      sheet_row.append(hits)
+      sheet_row.append(at_bats)
+      sheet_row.append(on_base_percentage)
+      sheet_row.append(average)
+      sheet_row.append(slugging)
+      sheet_row.append(on_base_plus_slugging)
       sheet_row.append(singles)
       sheet_row.append(doubles)
       sheet_row.append(triples)
+      sheet_row.append(home_runs)
+      sheet_row.append(hit_by_pitch)
+      sheet_row.append(base_on_balls)
+      sheet_row.append(runs_batted_in)
+      sheet_row.append(strikeouts)
+      sheet_row.append(stolen_bases)
+      sheet_row.append(stolen_bases)
+      sheet_row.append(games_played)
 
       values.append(sheet_row)
       values.append([])
-
-
-
-    # write to the sheet
     
-    body = {
-        'values': values
-    }
-    
-    # clear the sheet
-    # result = service.spreadsheets().values().clear(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME)
-    batch_clear = {
-      'ranges': ['Sheet1']
-    }
 
-    sheet.setFrozenColumns(1)
-  
-    result = service.spreadsheets().values().batchClear(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=batch_clear).execute()
-
+    # Clear the sheet
+    result = sheet.values().batchClear(spreadsheetId=SPREADSHEET_ID, body={'ranges': ['Sheet1']}).execute()
 
     # Update the sheet
-    result = service.spreadsheets().values().update(
-        spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
-        valueInputOption='USER_ENTERED', body=body).execute()
+    result = sheet.values().update(
+        spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME,
+        valueInputOption='USER_ENTERED', body={'values': values}).execute()
     print('{0} cells updated.'.format(result.get('updatedCells')))
 
 if __name__ == '__main__':
