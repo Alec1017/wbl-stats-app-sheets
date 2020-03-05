@@ -1,3 +1,5 @@
+from flask import jsonify
+
 from app import app, db, sheet, spreadsheet_id, range_name
 
 
@@ -172,10 +174,10 @@ def update_sheet(db_values):
       spreadsheetId=spreadsheet_id, range=range_name,
       valueInputOption='USER_ENTERED', body={'values': db_values}).execute()
     print('Success! {0} cells updated.'.format(result.get('updatedCells')))
-    return_value = 'Success'
+    return_value = 'success'
   except:
     print('Something went wrong! Stats were not uploaded to sheet')
-    return_value = 'Failure'
+    return_value = 'failure'
 
   return return_value
   
@@ -185,4 +187,4 @@ def api():
   values = build_sheet()
   clear_sheet()
 
-  return update_sheet(values)
+  return jsonify(update_sheet(values))
