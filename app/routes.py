@@ -1,6 +1,9 @@
 from flask import jsonify
 
 from app import app, db, sheet, spreadsheet_id, range_name
+from app.email import send_email
+
+EMAIL_LIST = []
 
 
 def calcHits(singles, doubles, triples, home_runs):
@@ -42,6 +45,8 @@ def calcERA(earned_runs, innings_pitched):
 
 
 def build_sheet():
+  global EMAIL_LIST
+
   # get firebase users
   users = db.collection(u'users').stream()
   name_row = ['Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'OUTS', 'GP', '', 'IP', 'ER', 'R', 'K', 'BB', 'SV', 'W', 'L', 'ERA']
@@ -53,8 +58,9 @@ def build_sheet():
     first_name = player.get('firstName')
     last_name = player.get('lastName')
     full_name = u'{} {}'.format(first_name, last_name)
-    
 
+    EMAIL_LIST.append((first_name, player.get('email')))
+    
     games = db.collection(u'games').where(u'player', u'==', full_name).stream()
     
     hits = 0
@@ -168,23 +174,27 @@ def clear_sheet():
 
 
 def update_sheet(db_values):
-  return_value = ''
+  global EMAIL_LIST
+
   try:
     result = sheet.values().update(
       spreadsheetId=spreadsheet_id, range=range_name,
       valueInputOption='USER_ENTERED', body={'values': db_values}).execute()
     print('Success! {0} cells updated.'.format(result.get('updatedCells')))
-    return_value = 'success'
   except:
     print('Something went wrong! Stats were not uploaded to sheet')
-    return_value = 'failure'
+    return {'success': False}
+  else:
+    for name, email in EMAIL_LIST:
+      send_email(name, '2020 WBL Stats', email)
+  
+    EMAIL_LIST = []
 
-  return return_value
+    return {'success': True}
   
 
 @app.route('/api/update_sheet')
 def api():
   values = build_sheet()
   clear_sheet()
-
   return jsonify(update_sheet(values))

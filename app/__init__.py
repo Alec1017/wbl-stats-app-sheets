@@ -29,6 +29,9 @@ scopes = ['https://www.googleapis.com/auth/spreadsheets']
 spreadsheet_id = os.getenv("SPREADSHEET_ID")
 range_name = 'Sheet1'
 
+email_address = os.getenv("EMAIL_ADDRESS")
+email_password = os.getenv("EMAIL_PASSWORD")
+
 def authenticate_sheet():
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
