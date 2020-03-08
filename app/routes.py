@@ -6,6 +6,7 @@ from app.email import send_email
 from app.slack import SlackBot
 
 EMAIL_LIST = []
+ADMIN_USERS = []
 slack_bot = SlackBot()
 
 
@@ -49,9 +50,17 @@ def calcERA(earned_runs, innings_pitched):
 
 def build_sheet():
   global EMAIL_LIST
+  global ADMIN_USERS
 
   # get firebase users
-  users = db.collection(u'users').stream()
+  users = []
+  try:
+    users = db.collection(u'users').stream()
+  except Exception as e:
+    message = "Could not get users from firebase.\n\n{}".format(str(e))
+    slack_bot.send_message(message=message)
+    return
+
   name_row = ['Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'OUTS', 'GP', '', 'IP', 'ER', 'R', 'K', 'BB', 'SV', 'W', 'L', 'ERA']
   values = [name_row, []]
 
@@ -62,10 +71,20 @@ def build_sheet():
     last_name = player.get('lastName')
     full_name = u'{} {}'.format(first_name, last_name)
 
+    if player.get('isAdmin'):
+      ADMIN_USERS.append(player.get('uid'))
+
     if player.get('subscribed'):
       EMAIL_LIST.append((first_name, player.get('email')))
     
-    games = db.collection(u'games').where(u'player', u'==', full_name).stream()
+    games = []
+    try:
+      games = db.collection(u'games').where(u'player', u'==', full_name).stream()
+    except Exception as e:
+      message = "Could not get games from firebase.\n\n{}".format(str(e))
+      slack_bot.send_message(message=message)
+      return
+
     
     hits = 0
     at_bats = 0
@@ -198,8 +217,15 @@ def update_sheet(db_values):
     return {'success': True}
   
 
-@app.route('/api/update_sheet')
-def api():
+@app.route('/api/update_sheet/<uid>')
+def api(uid):
+  global ADMIN_USERS
+
   values = build_sheet()
-  clear_sheet()
-  return jsonify(update_sheet(values))
+
+  if uid in ADMIN_USERS:
+    clear_sheet()
+    ADMIN_USERS = []
+    return jsonify(update_sheet(values))
+  else:
+    return jsonify({'success': False})
