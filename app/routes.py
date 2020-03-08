@@ -3,8 +3,10 @@ from flask import jsonify
 
 from app import app, db, sheet, spreadsheet_id, range_name
 from app.email import send_email
+from app.slack import SlackBot
 
 EMAIL_LIST = []
+slack_bot = SlackBot()
 
 
 def calcHits(singles, doubles, triples, home_runs):
@@ -169,22 +171,24 @@ def build_sheet():
 def clear_sheet():
   try:
     sheet.values().batchClear(spreadsheetId=spreadsheet_id, body={'ranges': [range_name]}).execute()
-  except:
-    print('Sheet was not cleared successfully')
-  else:
-    print('Sheet cleared successfully!')
+  except Exception as e:
+    message = "Google Sheet was not successfully cleared.\n\n{}".format(str(e))
+    slack_bot.send_message(message=message)
 
 
 def update_sheet(db_values):
   global EMAIL_LIST
 
   try:
-    result = sheet.values().update(
-      spreadsheetId=spreadsheet_id, range=range_name,
-      valueInputOption='USER_ENTERED', body={'values': db_values}).execute()
-    print('Success! {0} cells updated.'.format(result.get('updatedCells')))
-  except:
-    print('Something went wrong! Stats were not uploaded to sheet')
+    0/0
+    # result = sheet.values().update(
+    #   spreadsheetId=spreadsheet_id, range=range_name,
+    #   valueInputOption='USER_ENTERED', body={'values': db_values}).execute()
+    # print('Success! {0} cells updated.'.format(result.get('updatedCells')))
+    pass
+  except Exception as e:
+    message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
+    slack_bot.send_message(message=message)
     return {'success': False}
   else:
     for name, email in EMAIL_LIST:
@@ -192,6 +196,8 @@ def update_sheet(db_values):
   
     EMAIL_LIST = []
 
+    message = 'Stats have been updated successfully!'
+    slack_bot.send_message(message=message)
     return {'success': True}
   
 

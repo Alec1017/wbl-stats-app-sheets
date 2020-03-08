@@ -32,6 +32,8 @@ range_name = 'Sheet1'
 email_address = os.getenv("EMAIL_ADDRESS")
 email_password = os.getenv("EMAIL_PASSWORD")
 
+slack_token = os.getenv("SLACK_API_TOKEN")
+
 def authenticate_sheet():
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
