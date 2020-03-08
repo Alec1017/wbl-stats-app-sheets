@@ -60,7 +60,8 @@ def build_sheet():
     last_name = player.get('lastName')
     full_name = u'{} {}'.format(first_name, last_name)
 
-    EMAIL_LIST.append((first_name, player.get('email')))
+    if player.get('subscribed'):
+      EMAIL_LIST.append((first_name, player.get('email')))
     
     games = db.collection(u'games').where(u'player', u'==', full_name).stream()
     
