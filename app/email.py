@@ -23,7 +23,8 @@ def send_email(name, subject, to_email):
 
     server.sendmail(email_address, to_email, message)
     server.quit()
-    print("email sent!")
-  except:
+  except Exception as e:
     print("something went wrong, email not sent")
+    print(str(e))
+    
   
