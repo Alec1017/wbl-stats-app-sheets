@@ -173,7 +173,7 @@ def clear_sheet():
     sheet.values().batchClear(spreadsheetId=spreadsheet_id, body={'ranges': [range_name]}).execute()
   except Exception as e:
     message = "Google Sheet was not successfully cleared.\n\n{}".format(str(e))
-    #slack_bot.send_message(message=message)
+    slack_bot.send_message(message=message)
 
 
 def update_sheet(db_values):
@@ -185,17 +185,16 @@ def update_sheet(db_values):
       valueInputOption='USER_ENTERED', body={'values': db_values}).execute()
   except Exception as e:
     message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
-    #slack_bot.send_message(message=message)
+    slack_bot.send_message(message=message)
     return {'success': False}
   else:
     for name, email in EMAIL_LIST:
-      #send_email(name, '2020 WBL Stats', email)
-      pass
+      send_email(name, '2020 WBL Stats', email)
   
     EMAIL_LIST = []
 
     message = 'Stats have been updated successfully!'
-    #slack_bot.send_message(message=message)
+    slack_bot.send_message(message=message)
     return {'success': True}
   
 
