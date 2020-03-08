@@ -1,3 +1,4 @@
+from __future__ import division
 from flask import jsonify
 
 from app import app, db, sheet, spreadsheet_id, range_name
@@ -148,7 +149,7 @@ def build_sheet():
 
     sheet_row.append('')
 
-    sheet_row.append(innings_pitched)
+    sheet_row.append(round(innings_pitched / 3))
     sheet_row.append(earned_runs)
     sheet_row.append(runs)
     sheet_row.append(pitching_strikeouts)
