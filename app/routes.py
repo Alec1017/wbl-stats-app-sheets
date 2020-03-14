@@ -1,7 +1,7 @@
 from __future__ import division
 from flask import jsonify
 
-from app import app, db, sheet, spreadsheet_id, range_name
+from app import app, db, sheet, spreadsheet_id, range_name, range_name_sheet_two
 from app.email import send_email
 from app.slack import SlackBot
 
@@ -61,8 +61,11 @@ def build_sheet():
     slack_bot.send_message(message=message)
     return
 
-  name_row = ['Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'OUTS', 'GP', '', 'IP', 'ER', 'R', 'K', 'BB', 'SV', 'W', 'L', 'ERA']
+  name_row = ['Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'OUTS', 'GP', '', 'IP', 'ER', 'R', 'K', 'BB', 'SV', 'W', 'L', 'ERA', '', 'ERRORS']
+  standings_row = ['Player', 'W', 'L']
+
   values = [name_row, []]
+  standings_values = []
 
   for user in users:
     player = user.to_dict()
@@ -113,7 +116,13 @@ def build_sheet():
     wins = 0
     losses = 0
 
+    errors = 0
+
+    games_won = 0
+    games_lost = 0
+
     sheet_row = []
+    sheet_two_row = []
 
     # Summing up all the stats for a player
     for game in games: 
@@ -139,6 +148,12 @@ def build_sheet():
       saves += stats.get('saves')
       wins += stats.get('win')
       losses += stats.get('loss')
+
+      errors += stats.get('error')
+
+      games_won = games_won + 1 if stats.get('isCaptain') and stats.get('isGameWon') else games_won
+      games_lost = games_lost + 1 if stats.get('isCaptain') and not stats.get('isGameWon') else games_lost
+
 
     # Calculate stats
     hits = calcHits(singles, doubles, triples, home_runs)
@@ -181,15 +196,31 @@ def build_sheet():
     sheet_row.append(losses)
     sheet_row.append(earned_run_average)
 
+    sheet_row.append('')
+
+    sheet_row.append(errors)
+
     values.append(sheet_row)
     values.append([])
 
-  return values
+
+    # Standings
+
+    sheet_two_row.append(full_name)
+    sheet_two_row.append(games_won)
+    sheet_two_row.append(games_lost)
+
+    standings_values.append(sheet_two_row)
+
+  # sort the standings
+  standings_values.sort(key=lambda row: row[1], reverse=True)
+  standings_values.insert(0, standings_row)
+  return (values, standings_values)
 
 
 def clear_sheet():
   try:
-    sheet.values().batchClear(spreadsheetId=spreadsheet_id, body={'ranges': [range_name]}).execute()
+    sheet.values().batchClear(spreadsheetId=spreadsheet_id, body={'ranges': [range_name, range_name_sheet_two]}).execute()
   except Exception as e:
     message = "Google Sheet was not successfully cleared.\n\n{}".format(str(e))
     slack_bot.send_message(message=message)
@@ -199,16 +230,22 @@ def update_sheet(db_values):
   global EMAIL_LIST
 
   try:
+    pass
     result = sheet.values().update(
       spreadsheetId=spreadsheet_id, range=range_name,
-      valueInputOption='USER_ENTERED', body={'values': db_values}).execute()
+      valueInputOption='USER_ENTERED', body={'values': db_values[0]}).execute()
+
+    standings_result = sheet.values().update(
+      spreadsheetId=spreadsheet_id, range=range_name_sheet_two,
+      valueInputOption='USER_ENTERED', body={'values': db_values[1]}).execute()
   except Exception as e:
     message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
     slack_bot.send_message(message=message)
     return {'success': False}
   else:
     for name, email in EMAIL_LIST:
-      send_email(name, '2020 WBL Stats', email)
+      pass
+      #send_email(name, '2020 WBL Stats', email)
   
     EMAIL_LIST = []
 
