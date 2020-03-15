@@ -67,7 +67,6 @@ def build_sheet():
 
   values = [name_row, []]
   standings_values = []
-  game_log_values = []
 
   for user in users:
     player = user.to_dict()
@@ -87,7 +86,7 @@ def build_sheet():
       games = db.collection(u'games').where(u'player', u'==', full_name).stream()
     except Exception as e:
       message = "Could not get games from firebase.\n\n{}".format(str(e))
-      #slack_bot.send_message(message=message)
+      slack_bot.send_message(message=message)
       return
 
     
@@ -225,34 +224,32 @@ def clear_sheet():
     sheet.values().batchClear(spreadsheetId=spreadsheet_id, body={'ranges': [range_name, range_name_sheet_two]}).execute()
   except Exception as e:
     message = "Google Sheet was not successfully cleared.\n\n{}".format(str(e))
-    #slack_bot.send_message(message=message)
+    slack_bot.send_message(message=message)
 
 
 def update_sheet(db_values):
   global EMAIL_LIST
 
   try:
-    pass
-    # result = sheet.values().update(
-    #   spreadsheetId=spreadsheet_id, range=range_name,
-    #   valueInputOption='USER_ENTERED', body={'values': db_values[0]}).execute()
+    result = sheet.values().update(
+      spreadsheetId=spreadsheet_id, range=range_name,
+      valueInputOption='USER_ENTERED', body={'values': db_values[0]}).execute()
 
-    # standings_result = sheet.values().update(
-    #   spreadsheetId=spreadsheet_id, range=range_name_sheet_two,
-    #   valueInputOption='USER_ENTERED', body={'values': db_values[1]}).execute()
+    standings_result = sheet.values().update(
+      spreadsheetId=spreadsheet_id, range=range_name_sheet_two,
+      valueInputOption='USER_ENTERED', body={'values': db_values[1]}).execute()
   except Exception as e:
     message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
-    #slack_bot.send_message(message=message)
+    slack_bot.send_message(message=message)
     return {'success': False}
   else:
     for name, email in EMAIL_LIST:
-      pass
-      #send_email(name, '2020 WBL Stats', email)
+      send_email(name, '2020 WBL Stats', email)
   
     EMAIL_LIST = []
 
     message = 'Stats have been updated successfully!'
-    #slack_bot.send_message(message=message)
+    slack_bot.send_message(message=message)
     return {'success': True}
   
 
