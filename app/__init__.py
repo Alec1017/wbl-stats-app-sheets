@@ -29,6 +29,7 @@ scopes = ['https://www.googleapis.com/auth/spreadsheets']
 spreadsheet_id = os.getenv("SPREADSHEET_ID")
 range_name = 'Sheet1'
 range_name_sheet_two = 'Sheet2'
+range_name_sheet_three = 'Sheet3'
 
 email_address = os.getenv("EMAIL_ADDRESS")
 email_password = os.getenv("EMAIL_PASSWORD")
