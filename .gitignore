@@ -8,3 +8,4 @@ sheets-credentials.json
 
 *.pyc
 __pycache__
+.vscode
