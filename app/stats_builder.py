@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app import db, sheet, spreadsheet_id, range_name, range_name_sheet_two
+from app import db, sheet, spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
 from app.email import send_email
 from app.slack import SlackBot
 from app.stats_helpers import calcHits, calcAtBats, calcOBP, calcAVG, calcSLG, calcOPS, calcERA
@@ -17,18 +17,21 @@ class StatsBuilder:
 
   sheet_one_range = None
   sheet_two_range = None
+  sheet_three_range = None
 
   sheet_api = None
   sheet_id = None
 
   built_stats = []
   built_standings = []
+  built_game_log = []
 
 
   def __init__(self):
     self.slack_bot = SlackBot()
     self.sheet_one_range = range_name
     self.sheet_two_range = range_name_sheet_two
+    self.sheet_three_range = range_name_sheet_three
     self.sheet_api = sheet
     self.sheet_id = spreadsheet_id
 
@@ -71,6 +74,28 @@ class StatsBuilder:
       send_email(name, '2020 WBL Stats', email)
     
     self.email_list = []
+
+  def build_game_log(self):
+    log_title_row = ['Game Log']
+
+    log_values = []
+
+    for game in self.games:
+      log_string = "{} beat {} {}-{} on {}"
+      if game.get('isGameWon'):
+        winner = game.get('player')
+        loser = game.get('selectedOpponent')
+        winner_score = game.get('winnerScore')
+        loser_score = game.get('loserScore')
+        date = game.get('date')
+        
+        log_string = "{} beat {} {}-{} on {}".format(
+          winner, loser, winner_score, loser_score, date
+        )
+
+        log_values.append([log_string])
+    
+    self.built_game_log = log_values
 
 
   def build_standings(self):
@@ -234,6 +259,10 @@ class StatsBuilder:
       standings_result = self.sheet_api.values().update(
         spreadsheetId=self.sheet_id, range=self.sheet_two_range,
         valueInputOption='USER_ENTERED', body={'values': self.built_standings}).execute()
+
+      game_log_result = self.sheet_api.values().update(
+        spreadsheetId=self.sheet_id, range=self.sheet_three_range,
+        valueInputOption='USER_ENTERED', body={'values': self.built_game_log}).execute()
     except Exception as e:
       message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
       self.slack_bot.send_message(message=message)
