@@ -11,10 +11,10 @@ def api(uid):
   stats_builder.query_database()
   stats_builder.build_subscribed_users_and_admins()
 
-
   if uid in stats_builder.admin_users:
     stats_builder.build_stats()
     stats_builder.build_standings()
+    stats_builder.build_game_log()
     stats_builder.clear_all_sheets()
 
     results = stats_builder.update_all_sheets()

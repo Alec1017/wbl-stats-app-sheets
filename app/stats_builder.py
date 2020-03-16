@@ -78,7 +78,7 @@ class StatsBuilder:
   def build_game_log(self):
     log_title_row = ['Game Log']
 
-    log_values = []
+    log_values = [log_title_row]
 
     for game in self.games:
       log_string = "{} beat {} {}-{} on {}"
