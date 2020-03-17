@@ -113,8 +113,11 @@ class StatsBuilder:
       games = filter(lambda game: game.get('player') == full_name, self.games)
 
       for game in games:
-        games_won = games_won + 1 if game.get('isCaptain') and game.get('isGameWon') else games_won
-        games_lost = games_lost + 1 if game.get('isCaptain') and not game.get('isGameWon') else games_lost
+        if game.get('isCaptain') and game.get('isGameWon'):
+          games_won += 1
+
+        if game.get('isCaptain') and not game.get('isGameWon'):
+          games_lost += 1
 
       standings_values.append([full_name, games_won, games_lost])
 
@@ -198,7 +201,7 @@ class StatsBuilder:
 
       # Calculate stats
       hits = calcHits(singles, doubles, triples, home_runs)
-      at_bats = calcAtBats(hits, outs)
+      at_bats = calcAtBats(hits, outs, strikeouts)
       on_base_percentage = calcOBP(hits, at_bats, base_on_balls, hit_by_pitch)
       average = calcAVG(hits, at_bats)
       slugging = calcSLG(singles, doubles, triples, home_runs, at_bats)
@@ -245,7 +248,7 @@ class StatsBuilder:
 
   def clear_all_sheets(self):
     try:
-      self.sheet_api.values().batchClear(spreadsheetId=self.sheet_id, body={'ranges': [self.sheet_one_range, self.sheet_two_range]}).execute()
+      self.sheet_api.values().batchClear(spreadsheetId=self.sheet_id, body={'ranges': [self.sheet_one_range, self.sheet_two_range, self.sheet_three_range]}).execute()
     except Exception as e:
       message = "Google Sheet was not successfully cleared.\n\n{}".format(str(e))
       self.slack_bot.send_message(message=message)

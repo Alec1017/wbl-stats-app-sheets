@@ -2,8 +2,8 @@ def calcHits(singles, doubles, triples, home_runs):
   return singles + doubles + triples + home_runs
 
 
-def calcAtBats(hits, outs):
-  return hits + outs
+def calcAtBats(hits, outs, strikeouts):
+  return hits + outs + strikeouts
 
 
 def calcOBP(hits, at_bats, base_on_balls, hit_by_pitch):
