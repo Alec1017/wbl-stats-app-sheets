@@ -71,7 +71,8 @@ class StatsBuilder:
   
   def send_emails(self):
     for name, email in self.email_list:
-      send_email(name, '2020 WBL Stats', email)
+      pass
+      # send_email(name, '2020 WBL Stats', email)
     
     self.email_list = []
 
@@ -129,8 +130,8 @@ class StatsBuilder:
 
   def build_stats(self):
     stats_title_row = [
-      'Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'OUTS', 'GP', 
-      '', 'IP', 'ER', 'R', 'K', 'BB', 'SV', 'W', 'L', 'ERA', 
+      'Player', 'H', 'AB', 'OBP', 'AVG', 'SLG', 'OPS', '1B', '2B', '3B', 'HR', 'HBP', 'BB', 'RBI', 'K', 'SB', 'CS', 'OUTS', 'GP', 
+      '', 'IP', 'ER', 'R', 'K', 'BB', 'SV', 'BS', 'W', 'L', 'ERA', 
       '', 'ERRORS'
     ]
 
@@ -157,6 +158,7 @@ class StatsBuilder:
       runs_batted_in = 0
       strikeouts = 0
       stolen_bases = 0
+      caught_stealing = 0
       outs = 0
       games_played = 0
 
@@ -166,6 +168,7 @@ class StatsBuilder:
       pitching_strikeouts = 0
       pitching_base_on_balls = 0
       saves = 0
+      blown_saves = 0
       wins = 0
       losses = 0
 
@@ -185,6 +188,7 @@ class StatsBuilder:
         runs_batted_in += stats.get('runsBattedIn')
         strikeouts += stats.get('strikeouts')
         stolen_bases += stats.get('stolenBases')
+        caught_stealing += stats.get('caughtStealing', 0)
         outs += stats.get('outs')
         games_played += 1
 
@@ -194,6 +198,7 @@ class StatsBuilder:
         pitching_strikeouts += stats.get('pitchingStrikeouts')
         pitching_base_on_balls += stats.get('pitchingBaseOnBalls')
         saves += stats.get('saves')
+        blown_saves += stats.get('blownSaves', 0)
         wins += stats.get('win')
         losses += stats.get('loss')
 
@@ -225,6 +230,7 @@ class StatsBuilder:
         runs_batted_in,
         strikeouts,
         stolen_bases,
+        caught_stealing,
         outs,
         games_played,
         '',
@@ -234,6 +240,7 @@ class StatsBuilder:
         pitching_strikeouts,
         pitching_base_on_balls,
         saves,
+        blown_saves,
         wins,
         losses,
         earned_run_average,
