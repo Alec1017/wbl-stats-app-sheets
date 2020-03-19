@@ -8,7 +8,7 @@ stats_builder = StatsBuilder()
 
 @app.route('/api')
 def status():
-  return jsonify('status': 'Up and running')
+  return jsonify({'status': 'Up and running'})
 
 @app.route('/api/update_sheet/<uid>')
 def api(uid):
