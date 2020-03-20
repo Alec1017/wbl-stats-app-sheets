@@ -25,4 +25,4 @@ def api(uid):
 
     return jsonify(results)
   else:
-    return jsonify({'success': False})
+    return jsonify({'success': False, 'completed': False})

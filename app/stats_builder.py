@@ -275,11 +275,11 @@ class StatsBuilder:
     except Exception as e:
       message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
       self.slack_bot.send_message(message=message)
-      return {'success': False}
+      return {'success': False, 'completed': False}
     else:
       self.send_emails()
       self.admin_users = []
 
       message = "Google Sheet was successfully updated!"
       self.slack_bot.send_message(message=message)
-      return {'success': True}
+      return {'success': True, 'completed': True}
