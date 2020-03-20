@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Opening virtualenvironment..."
+echo "Opening virtual environment..."
 source ./venv/bin/activate
 
 echo "Deploying production instance..."
