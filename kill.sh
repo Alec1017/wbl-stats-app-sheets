@@ -3,4 +3,4 @@
 echo "Killing deployed instance..."
 pkill -f gunicorn
 
-echo "nstance killed"
+echo "instance killed"
