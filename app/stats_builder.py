@@ -100,13 +100,13 @@ class StatsBuilder:
 
   def build_standings(self):
     standings_title_row = ['Player', 'W', 'L']
-
-    standings_values = []
+    standings_values = {}
 
     for user in self.users:
       first_name = user.get('firstName')
       last_name = user.get('lastName')
       full_name = u'{} {}'.format(first_name, last_name)
+      division = str(user.get('division'))
 
       games_won = 0
       games_lost = 0
@@ -119,12 +119,25 @@ class StatsBuilder:
         if game.get('isCaptain') and not game.get('isGameWon'):
           games_lost += 1
 
-      standings_values.append([full_name, games_won, games_lost])
+      
+      if standings_values.get(division):
+        standings_values[division].append([full_name, games_won, games_lost])
+      else:
+        standings_values[division] = [[full_name, games_won, games_lost]]
 
-    standings_values.sort(key=lambda row: row[1], reverse=True)
-    standings_values.insert(0, standings_title_row)
 
-    self.built_standings = standings_values
+    standings_tuple = [(div, row) for div, row in standings_values.items()] 
+    standings_tuple.sort(key=lambda standings: standings[0])
+
+    final_standings = [standings_title_row]
+
+    for division, rows in standings_tuple:
+      rows.sort(key=lambda x: x[1], reverse=True)
+      final_standings.append(['D{}'.format(division)])
+      final_standings +=rows
+      final_standings.append([])
+
+    self.built_standings = final_standings
       
 
   def build_stats(self):
