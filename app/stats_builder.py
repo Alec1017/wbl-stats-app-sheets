@@ -3,7 +3,7 @@ from datetime import datetime
 from app import db, sheet, spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
 from app.email import send_email
 from app.slack import SlackBot
-from app.stats_helpers import calcHits, calcAtBats, calcOBP, calcAVG, calcSLG, calcOPS, calcERA
+from app.stats_helpers import calcHits, calcAtBats, calcOBP, calcAVG, calcSLG, calcOPS, calcERA, calcInningsPitched
 
 
 class StatsBuilder:
@@ -219,6 +219,7 @@ class StatsBuilder:
       # Calculate stats
       hits = calcHits(singles, doubles, triples, home_runs)
       at_bats = calcAtBats(hits, outs, strikeouts)
+      innings_pitched = calcInningsPitched(innings_pitched)
       on_base_percentage = calcOBP(hits, at_bats, base_on_balls, hit_by_pitch)
       average = calcAVG(hits, at_bats)
       slugging = calcSLG(singles, doubles, triples, home_runs, at_bats)
@@ -246,7 +247,7 @@ class StatsBuilder:
         outs,
         games_played,
         '',
-        round(innings_pitched / 3),
+        innings_pitched,
         earned_runs,
         runs,
         pitching_strikeouts,
@@ -290,7 +291,7 @@ class StatsBuilder:
       self.slack_bot.send_message(message=message)
       return {'success': False, 'completed': False}
     else:
-      self.send_emails()
+      #self.send_emails()
       self.admin_users = []
 
       message = "Google Sheet was successfully updated!"
