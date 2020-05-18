@@ -87,10 +87,11 @@ class StatsBuilder:
         loser = game.get('selectedOpponent')
         winner_score = game.get('winnerScore')
         loser_score = game.get('loserScore')
+        total_innings = game.get('totalInnings', 3)
         date = game.get('date')
         
-        log_string = "{} beat {} {}-{} on {}".format(
-          winner, loser, winner_score, loser_score, date
+        log_string = "{} beat {} {}-{} in {} innings on {}".format(
+          winner, loser, winner_score, loser_score, total_innings, date
         )
 
         log_values.append([log_string])
@@ -291,7 +292,7 @@ class StatsBuilder:
       self.slack_bot.send_message(message=message)
       return {'success': False, 'completed': False}
     else:
-      self.send_emails()
+      #self.send_emails()
       self.admin_users = []
 
       message = "Google Sheet was successfully updated!"
