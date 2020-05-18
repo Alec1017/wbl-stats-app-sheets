@@ -292,7 +292,7 @@ class StatsBuilder:
       self.slack_bot.send_message(message=message)
       return {'success': False, 'completed': False}
     else:
-      #self.send_emails()
+      self.send_emails()
       self.admin_users = []
 
       message = "Google Sheet was successfully updated!"
