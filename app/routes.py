@@ -58,7 +58,7 @@ def game(game_id):
     form.inningsPitched.data = game.get('inningsPitched')
     form.loss.data = game.get('loss')
     form.winnerScore.data = game.get('winnerScore')
-    form.selectedOpponent.data = game.get('selectedOpponent')
+    form.selectedOpponent.data = game.get('selectedOpponent', '')
     form.saves.data = game.get('saves')
     form.baseOnBalls.data = game.get('baseOnBalls')
     form.hitByPitch.data = game.get('hitByPitch')
@@ -75,7 +75,7 @@ def game(game_id):
     form.caughtStealing.data = game.get('caughtStealing')
     form.triples.data = game.get('triples')
     form.runs.data = game.get('runs')
-    form.player.data = game.get('player')
+    form.player.data = game.get('player', '')
     form.doubles.data = game.get('doubles')
 
     if request.method == 'POST' and form.validate():
@@ -83,7 +83,7 @@ def game(game_id):
       # do the api call
       try:
         updated_game = {
-          'isCaptain': request.form['isCaptain'] == 'y',
+          'isCaptain': request.form.get('isCaptain', False) == 'y',
           'loserScore': int(request.form['loserScore']),
           'totalInnings': int(request.form['totalInnings']),
           'error': int(request.form['error']),
@@ -92,14 +92,14 @@ def game(game_id):
           'inningsPitched': int(request.form['inningsPitched']),
           'loss': int(request.form['loss']),
           'winnerScore': int(request.form['winnerScore']),
-          'selectedOpponent': request.form['selectedOpponent'],
+          'selectedOpponent': str(request.form['selectedOpponent']),
           'saves': int(request.form['saves']),
           'baseOnBalls': int(request.form['baseOnBalls']),
           'hitByPitch': int(request.form['hitByPitch']),
           'outs': int(request.form['outs']),
           'singles': int(request.form['singles']),
           'win': int(request.form['win']),
-          'isGameWon': request.form['isGameWon'] == 'y',
+          'isGameWon': request.form.get('isGameWon', False) == 'y',
           'runsBattedIn': int(request.form['runsBattedIn']),
           'earnedRuns': int(request.form['earnedRuns']),
           'strikeouts': int(request.form['strikeouts']),
@@ -109,7 +109,7 @@ def game(game_id):
           'caughtStealing': int(request.form['caughtStealing']),
           'triples': int(request.form['triples']),
           'runs': int(request.form['runs']),
-          'player': request.form['player'],
+          'player': str(request.form['player']),
           'doubles': int(request.form['doubles']),
         }
 
