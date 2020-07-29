@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 from flask import Flask
+# from flask_sqlalchemy import SQLAlchemy
 
 import pickle
 from dotenv import load_dotenv
@@ -16,6 +17,13 @@ load_dotenv()
 
 
 app = Flask(__name__)
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{}:{}@{}/{}'.format(
+#   os.getenv('MYSQL_USERNAME'), os.getenv('MYSQL_PASSWORD'), os.getenv('MYSQL_ENDPOINT'), os.getenv('MYSQL_DB')
+# )
+# sql_db = SQLAlchemy(app)
+
+app.secret_key = os.getenv("SECRET_KEY")
 
 cred = credentials.Certificate('firebase-credentials.json')
 firebase_admin.initialize_app(cred)

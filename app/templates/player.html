@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>{{ player.firstName }} {{ player.lastName }}</h1>
+    <ul class="list-group">
+        {% for game in games %}
+            <li class="list-group-item"><a href="game/{{game.id}}">Date: {{ game.date }}&nbsp;&nbsp;&nbsp;&nbsp;Opponent: {{ game.selectedOpponent }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

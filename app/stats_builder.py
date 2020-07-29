@@ -48,7 +48,12 @@ class StatsBuilder:
   def query_all_games(self):
     try:
       games = db.collection(u'games').stream()
-      dict_games = [game.to_dict() for game in games]
+      dict_games = []
+      for game in games:
+        game_id = game.id
+        game_dict = game.to_dict()
+        game_dict['id'] = game_id
+        dict_games.append(game_dict)
       dict_games.sort(key=lambda game: datetime.strptime(game.get('date'), '%a %b %d %Y'))
       return dict_games
     except Exception as e:

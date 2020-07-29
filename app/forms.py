@@ -1,0 +1,33 @@
+from wtforms import Form, BooleanField, IntegerField, StringField
+
+class GameForm(Form):
+  player = StringField('Player')
+  singles = IntegerField('1B')
+  doubles = IntegerField('2B')
+  triples = IntegerField('3B')
+  homeRuns = IntegerField('HR')
+  strikeouts = IntegerField('Batting strikeouts')
+  outs = IntegerField('OUTS')
+  baseOnBalls = IntegerField('BB')
+  hitByPitch = IntegerField('HBP')
+  runsBattedIn = IntegerField('RBI')
+  error = IntegerField('Error')
+  stolenBases = IntegerField('SB')
+  caughtStealing = IntegerField('CS')
+
+  inningsPitched = IntegerField('Innings pitched (total number of outs)')
+  earnedRuns = IntegerField('ER')
+  runs = IntegerField('R')
+  pitchingStrikeouts = IntegerField('Pitching strikeouts')
+  pitchingBaseOnBalls = IntegerField('Pitching BB')
+  saves = IntegerField('Saves')
+  blownSaves = IntegerField('Blown saves')
+  win = IntegerField('Pitching win')
+  loss = IntegerField('Pitching loss')
+
+  isCaptain = BooleanField('Is captain?')
+  isGameWon = BooleanField('Did you win the game?')
+  selectedOpponent = StringField('Selected opponent')
+  winnerScore = IntegerField('Winning team score')
+  loserScore = IntegerField('Losing team score')
+  totalInnings = IntegerField('Total innings played')
