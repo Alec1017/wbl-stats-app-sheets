@@ -1,6 +1,7 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for
 
-from app import app, db #, sql_db
+from app import app, db,sql_db
+from app.models import Player
 from app.stats_builder import StatsBuilder
 from .forms import GameForm
 
@@ -148,6 +149,9 @@ def api(uid):
   else:
     return jsonify({'success': False, 'completed': False})
 
-# @app.route('/sql_test')
-# def sql_test():
-#   return 'hello'
+@app.route('/sql_test')
+def sql_test():
+  players = Player.query.filter(Player.last_name == 'Brown').all()
+  for player in players:
+    print('{} {} {}'.format(player.id, player.first_name, player.admin))
+  return "hello"
