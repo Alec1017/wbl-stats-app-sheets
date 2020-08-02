@@ -1,6 +1,7 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for
 
 from app import app, db,sql_db
+from app.email import send_email
 from app.models import Player, Game, GameLog
 from app.stats_builder import StatsBuilder
 from .forms import GameForm
@@ -127,7 +128,6 @@ def game(game_id):
 
         game = Game(
           player_id = player.id,
-
           singles=int(request.form['singles']),
           doubles = int(request.form['doubles']),
           triples = int(request.form['triples']),
@@ -140,7 +140,6 @@ def game(game_id):
           error = int(request.form['error']),
           stolen_bases = int(request.form['stolenBases']),
           caught_stealing = int(request.form['caughtStealing']),
-
           innings_pitched = int(request.form['inningsPitched']),
           earned_runs = int(request.form['earnedRuns']),
           runs = int(request.form['runs']),
@@ -150,10 +149,8 @@ def game(game_id):
           blown_saves = int(request.form['blownSaves']),
           win = int(request.form['win']),
           loss = int(request.form['loss']),
-
           opponent_id = opponent.id,
           total_innings = int(request.form['totalInnings']),
-
           player = player,
           opponent = opponent
         )
@@ -203,3 +200,4 @@ def sql_test():
   for player in players:
     print('{} {} {}'.format(player.id, player.first_name, player.admin))
   return "hello"
+  

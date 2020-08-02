@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "Creating virtual environment..."
 virtualenv venv
 
-pip3 install -r requirements.txt
+echo "Installing dependencies..."
+pipenv install
