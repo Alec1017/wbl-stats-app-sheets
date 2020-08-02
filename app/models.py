@@ -15,10 +15,30 @@ class Player(db.Model):
   division = db.Column(db.Integer, index=True)
   admin = db.Column(db.Boolean, index=True, default=False)
   subscribed = db.Column(db.Boolean, index=True, default=True)
-  games = db.relationship('Game', backref='player', lazy='dynamic')
+
+  # Relationships
+  games = db.relationship('Game', back_populates='player')
 
   def __repr__(self):
     return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
+
+
+class GameLog(db.Model):
+  __tablename__ = 'game_log'
+
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+  created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+  winner_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+  loser_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+  winning_score = db.Column(db.Integer)
+  losing_score = db.Column(db.Integer)
+
+  # Relationships
+  winner = db.relationship('Player')
+  loser = db.relationship('Player')
+  
+  def __repr__(self):
+    return '<GameLog {}>'.format(self.id)
 
 
 class Game(db.Model):
@@ -53,10 +73,14 @@ class Game(db.Model):
 
   captain = db.Column(db.Boolean, index=True, default=False)
   game_won = db.Column(db.Boolean, default=False)
-  selected_opponent = db.Column(db.Integer, db.ForeignKey('player.id'))
+  opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'))
   winner_score = db.Column(db.Integer, default=0)
   loser_score = db.Column(db.Integer, default=0)
   total_innings = db.Column(db.Integer, default=3)
+
+  # Relationships
+  player = db.relationship('Player', back_populates='game')
+  opponent = db.relationship('Player')
 
   def __repr__(self):
     return '<Game {}>'.format(self.id)
