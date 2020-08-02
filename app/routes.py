@@ -1,7 +1,7 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for
 
 from app import app, db,sql_db
-from app.models import Player
+from app.models import Player, Game, GameLog
 from app.stats_builder import StatsBuilder
 from .forms import GameForm
 
@@ -83,6 +83,8 @@ def game(game_id):
 
       # do the api call
       try:
+
+
         updated_game = {
           'isCaptain': request.form.get('isCaptain', False) == 'y',
           'loserScore': int(request.form['loserScore']),
@@ -114,8 +116,54 @@ def game(game_id):
           'doubles': int(request.form['doubles']),
         }
 
-        db.collection(u'games').document(u'{}'.format(game_id)).update(updated_game)
+        first_name = str(request.form['player']).split(' ')[0]
+        last_name = str(request.form['player']).split(' ')[1]
+
+        op_first = str(request.form['selectedOpponent']).split(' ')[0]
+        op_second = str(request.form['selectedOpponent']).split(' ')[1]
+
+        player = Player.query.filter(Player.first_name == first_name, Player.last_name == last_name).one()
+        opponent = Player.query.filter(Player.first_name == op_first, Player.last_name == op_second).one()
+
+        game = Game(
+          player_id = player.id,
+
+          singles=int(request.form['singles']),
+          doubles = int(request.form['doubles']),
+          triples = int(request.form['triples']),
+          home_runs = int(request.form['homeRuns']),
+          strikeouts = int(request.form['strikeouts']),
+          outs = int(request.form['outs']),
+          base_on_balls = int(request.form['baseOnBalls']),
+          hit_by_pitch = int(request.form['hitByPitch']),
+          runs_batted_in =int(request.form['runsBattedIn']),
+          error = int(request.form['error']),
+          stolen_bases = int(request.form['stolenBases']),
+          caught_stealing = int(request.form['caughtStealing']),
+
+          innings_pitched = int(request.form['inningsPitched']),
+          earned_runs = int(request.form['earnedRuns']),
+          runs = int(request.form['runs']),
+          pitching_strikeouts = int(request.form['pitchingStrikeouts']),
+          pitching_base_on_balls = int(request.form['pitchingBaseOnBalls']),
+          saves = int(request.form['saves']),
+          blown_saves = int(request.form['blownSaves']),
+          win = int(request.form['win']),
+          loss = int(request.form['loss']),
+
+          opponent_id = opponent.id,
+          total_innings = int(request.form['totalInnings']),
+
+          player = player,
+          opponent = opponent
+        )
+
+        sql_db.session.add(game)
+        sql_db.session.commit()
+
+        # db.collection(u'games').document(u'{}'.format(game_id)).update(updated_game)
       except Exception as e:
+        print(e)
         flash('Game update failed, try again', 'error')
         return redirect(url_for('index'))
 

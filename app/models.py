@@ -17,7 +17,7 @@ class Player(db.Model):
   subscribed = db.Column(db.Boolean, index=True, default=True)
 
   # Relationships
-  games = db.relationship('Game', back_populates='player')
+  games = db.relationship('Game', back_populates='player', foreign_keys='Game.player_id')
 
   def __repr__(self):
     return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
@@ -34,8 +34,8 @@ class GameLog(db.Model):
   losing_score = db.Column(db.Integer)
 
   # Relationships
-  winner = db.relationship('Player')
-  loser = db.relationship('Player')
+  winner = db.relationship('Player', foreign_keys=[winner_id])
+  loser = db.relationship('Player', foreign_keys=[loser_id])
   
   def __repr__(self):
     return '<GameLog {}>'.format(self.id)
@@ -71,16 +71,12 @@ class Game(db.Model):
   win = db.Column(db.Integer, default=0)
   loss = db.Column(db.Integer, default=0)
 
-  captain = db.Column(db.Boolean, index=True, default=False)
-  game_won = db.Column(db.Boolean, default=False)
   opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'))
-  winner_score = db.Column(db.Integer, default=0)
-  loser_score = db.Column(db.Integer, default=0)
   total_innings = db.Column(db.Integer, default=3)
 
   # Relationships
-  player = db.relationship('Player', back_populates='game')
-  opponent = db.relationship('Player')
+  player = db.relationship('Player', foreign_keys=[player_id])
+  opponent = db.relationship('Player', foreign_keys=[opponent_id])
 
   def __repr__(self):
     return '<Game {}>'.format(self.id)
