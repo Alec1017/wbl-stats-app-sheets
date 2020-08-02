@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 from flask import Flask
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 import pickle
@@ -22,6 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
   os.getenv('MYSQL_USERNAME'), os.getenv('MYSQL_PASSWORD'), os.getenv('MYSQL_ENDPOINT'), os.getenv('MYSQL_DB')
 )
 sql_db = SQLAlchemy(app)
+
+migrate = Migrate(app, sql_db)
 
 app.secret_key = os.getenv("SECRET_KEY")
 

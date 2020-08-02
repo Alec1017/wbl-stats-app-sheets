@@ -8,13 +8,14 @@ db = sql_db
 class Player(db.Model):
   __tablename__ = 'player'
 
-  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
   first_name = db.Column(db.String(45), index=True)
   last_name = db.Column(db.String(45), index=True)
   email = db.Column(db.String(100), index=True, unique=True)
   division = db.Column(db.Integer, index=True)
-  admin = db.Column(db.Boolean, index=True, server_default='f')
-  subscribed = db.Column(db.Boolean, index=True, server_default='t')
+  admin = db.Column(db.Boolean, index=True, default=False)
+  subscribed = db.Column(db.Boolean, index=True, default=True)
+  games = db.relationship('Game', backref='player', lazy='dynamic')
 
   def __repr__(self):
     return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
@@ -23,7 +24,7 @@ class Player(db.Model):
 class Game(db.Model):
   __tablename__ = 'game'
 
-  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
   player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
   created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
@@ -50,8 +51,8 @@ class Game(db.Model):
   win = db.Column(db.Integer, default=0)
   loss = db.Column(db.Integer, default=0)
 
-  captain = db.Column(db.Boolean, index=True, server_default='f')
-  game_won = db.Column(db.Boolean, server_default='f')
+  captain = db.Column(db.Boolean, index=True, default=False)
+  game_won = db.Column(db.Boolean, default=False)
   selected_opponent = db.Column(db.Integer, db.ForeignKey('player.id'))
   winner_score = db.Column(db.Integer, default=0)
   loser_score = db.Column(db.Integer, default=0)
