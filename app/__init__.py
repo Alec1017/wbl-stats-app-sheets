@@ -41,6 +41,7 @@ range_name_sheet_three = 'Game Log'
 
 email_address = os.getenv("EMAIL_ADDRESS")
 email_password = os.getenv("EMAIL_PASSWORD")
+mailgun_api_token = os.getenv("MAILGUN_API_TOKEN")
 
 slack_token = os.getenv("SLACK_API_TOKEN")
 
