@@ -2,9 +2,9 @@ from flask import jsonify, render_template, request, flash, redirect, url_for
 
 from app import app, db, sheet, test_spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
 from app.email import send_email
+from app.forms import GameForm
 from app.models import Player, Game, GameLog
 from app.stats_compiler import StatsCompiler
-from .forms import GameForm
 
 
 stats_compiler = StatsCompiler(sheet, range_name, range_name_sheet_two, range_name_sheet_three, test_spreadsheet_id)
