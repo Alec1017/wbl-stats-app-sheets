@@ -2,7 +2,7 @@ import requests
 import random
 import datetime
 
-from app import email_address, email_password, spreadsheet_id, mailgun_api_token
+from app import spreadsheet_id, mailgun_api_token
 
 random_fun_facts = [
   'The first-ever documented feature film was made in Australia in 1906.',

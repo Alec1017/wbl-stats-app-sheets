@@ -5,6 +5,7 @@ sheets-credentials.json
 *.pickle
 
 /venv
+.venv
 
 *.pyc
 __pycache__

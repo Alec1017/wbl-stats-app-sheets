@@ -9,159 +9,122 @@ from .forms import GameForm
 
 stats_builder = StatsBuilder()
 
+
 @app.route('/')
 def index():
+  players = Player.query.all()
 
-  stats_builder.query_database()
+  return render_template('home.html', players=players)
 
-  return render_template('home.html', players=stats_builder.users)
+
+@app.route('/api')
+def status():
+  return jsonify({'status': 'Up and running'})
+
 
 @app.route('/player/<uid>')
 def player(uid):
-  current_player = None
-  games = []
 
-  if not stats_builder.users or not stats_builder.games:
-    stats_builder.query_database()
+  current_player = Player.query.get(uid)
+  player_games = Game.query.filter(Game.player_id == uid).order_by(Game.created_at).all()
 
-  for player in stats_builder.users:
-    if uid == player.get('uid'):
-      current_player = player
-      break
-
-  for game in stats_builder.games:
-    if uid == game.get('uid'):
-      games.append(game)
-
-  if current_player and games:
-    games.sort(key=lambda timestamp: game.get('timestamp'))
-    return render_template('player.html', player=current_player, games=games)
+  if current_player and player_games:
+    return render_template('player.html', player=current_player, games=player_games)
   else:
     return "no player data"
 
 
 @app.route('/player/game/<game_id>', methods=['GET', 'POST'])
 def game(game_id):
-  game = None
   form = GameForm(request.form)
-
-  for player_game in stats_builder.games:
-    if game_id == player_game.get('id'):
-      game = player_game
-      break
+  game = Game.query.get(game_id)
 
   if game:
-    form.isCaptain.data = game.get('isCaptain')
-    form.loserScore.data = game.get('loserScore')
-    form.totalInnings.data = game.get('totalInnings')
-    form.error.data = game.get('error')
-    form.pitchingStrikeouts.data = game.get('pitchingStrikeouts')
-    form.blownSaves.data = game.get('blownSaves')
-    form.inningsPitched.data = game.get('inningsPitched')
-    form.loss.data = game.get('loss')
-    form.winnerScore.data = game.get('winnerScore')
-    form.selectedOpponent.data = game.get('selectedOpponent', '')
-    form.saves.data = game.get('saves')
-    form.baseOnBalls.data = game.get('baseOnBalls')
-    form.hitByPitch.data = game.get('hitByPitch')
-    form.outs.data = game.get('outs')
-    form.singles.data = game.get('singles')
-    form.win.data = game.get('win')
-    form.isGameWon.data = game.get('isGameWon')
-    form.runsBattedIn.data = game.get('runsBattedIn')
-    form.earnedRuns.data = game.get('earnedRuns')
-    form.strikeouts.data = game.get('strikeouts')
-    form.stolenBases.data = game.get('stolenBases')
-    form.homeRuns.data = game.get('homeRuns')
-    form.pitchingBaseOnBalls.data = game.get('pitchingBaseOnBalls')
-    form.caughtStealing.data = game.get('caughtStealing')
-    form.triples.data = game.get('triples')
-    form.runs.data = game.get('runs')
-    form.player.data = game.get('player', '')
-    form.doubles.data = game.get('doubles')
+    form.captain.data = game.captain
+    form.loser_score.data = game.loser_score
+    form.total_innings.data = game.total_innings
+    form.error.data = game.error
+    form.pitching_strikeouts.data = game.pitching_strikeouts
+    form.blown_saves.data = game.blown_saves
+    form.innings_pitched.data = game.innings_pitched
+    form.loss.data = game.loss
+    form.winner_score.data = game.winner_score
+    form.opponent.data = '{} {}'.format(game.opponent.first_name, game.opponent.last_name) if game.opponent else None
+    form.saves.data = game.saves
+    form.base_on_balls.data = game.base_on_balls
+    form.hit_by_pitch.data = game.hit_by_pitch
+    form.outs.data = game.outs
+    form.singles.data = game.singles
+    form.win.data = game.win
+    form.game_won.data = game.game_won
+    form.runs_batted_in.data = game.runs_batted_in
+    form.earned_runs.data = game.earned_runs
+    form.strikeouts.data = game.strikeouts
+    form.stolen_bases.data = game.stolen_bases
+    form.home_runs.data = game.home_runs
+    form.pitching_base_on_balls.data = game.pitching_base_on_balls
+    form.caught_stealing.data = game.caught_stealing
+    form.triples.data = game.triples
+    form.runs.data = game.runs
+    form.player.data = '{} {}'.format(game.player.first_name, game.player.last_name)
+    form.doubles.data = game.doubles
 
     if request.method == 'POST' and form.validate():
+      player = None
+      opponent = None
 
-      # do the api call
+      if request.form['player']:
+        first_name, last_name = str(request.form['player']).split(' ')
+        player = Player.query.filter(Player.first_name == first_name, Player.last_name == last_name).first()
+
+        if not player:
+          flash('No player with that name exists', 'danger')
+          return redirect(url_for('index'))
+
+      if request.form['opponent']:
+        op_first, op_second = str(request.form['opponent']).split(' ')
+        opponent = Player.query.filter(Player.first_name == op_first, Player.last_name == op_second).first()
+
+        if not opponent:
+          flash('No opponent with that name exists', 'danger')
+          return redirect(url_for('index'))
+
       try:
+        game.player_id = player.id
+        game.singles=int(request.form['singles'])
+        game.doubles = int(request.form['doubles'])
+        game.triples = int(request.form['triples'])
+        game.home_runs = int(request.form['home_runs'])
+        game.strikeouts = int(request.form['strikeouts'])
+        game.outs = int(request.form['outs'])
+        game.base_on_balls = int(request.form['base_on_balls'])
+        game.hit_by_pitch = int(request.form['hit_by_pitch'])
+        game.runs_batted_in =int(request.form['runs_batted_in'])
+        game.error = int(request.form['error'])
+        game.stolen_bases = int(request.form['stolen_bases'])
+        game.caught_stealing = int(request.form['caught_stealing'])
+        game.innings_pitched = int(request.form['innings_pitched'])
+        game.earned_runs = int(request.form['earned_runs'])
+        game.runs = int(request.form['runs'])
+        game.pitching_strikeouts = int(request.form['pitching_strikeouts'])
+        game.pitching_base_on_balls = int(request.form['pitching_base_on_balls'])
+        game.saves = int(request.form['saves'])
+        game.blown_saves = int(request.form['blown_saves'])
+        game.win = int(request.form['win'])
+        game.loss = int(request.form['loss'])
+        game.opponent_id = (opponent.id if opponent else None)
+        game.total_innings = int(request.form['total_innings'])
+        game.captain=(request.form.get('captain', False) == 'y')
+        game.game_won=(request.form.get('game_won', False) == 'y')
+        game.winner_score=int(request.form['winner_score'])
+        game.loser_score=int(request.form['loser_score'])
+        game.player = player
+        game.opponent = opponent
 
-
-        updated_game = {
-          'isCaptain': request.form.get('isCaptain', False) == 'y',
-          'loserScore': int(request.form['loserScore']),
-          'totalInnings': int(request.form['totalInnings']),
-          'error': int(request.form['error']),
-          'pitchingStrikeouts': int(request.form['pitchingStrikeouts']),
-          'blownSaves': int(request.form['blownSaves']),
-          'inningsPitched': int(request.form['inningsPitched']),
-          'loss': int(request.form['loss']),
-          'winnerScore': int(request.form['winnerScore']),
-          'selectedOpponent': str(request.form['selectedOpponent']),
-          'saves': int(request.form['saves']),
-          'baseOnBalls': int(request.form['baseOnBalls']),
-          'hitByPitch': int(request.form['hitByPitch']),
-          'outs': int(request.form['outs']),
-          'singles': int(request.form['singles']),
-          'win': int(request.form['win']),
-          'isGameWon': request.form.get('isGameWon', False) == 'y',
-          'runsBattedIn': int(request.form['runsBattedIn']),
-          'earnedRuns': int(request.form['earnedRuns']),
-          'strikeouts': int(request.form['strikeouts']),
-          'stolenBases': int(request.form['stolenBases']),
-          'homeRuns': int(request.form['homeRuns']),
-          'pitchingBaseOnBalls': int(request.form['pitchingBaseOnBalls']),
-          'caughtStealing': int(request.form['caughtStealing']),
-          'triples': int(request.form['triples']),
-          'runs': int(request.form['runs']),
-          'player': str(request.form['player']),
-          'doubles': int(request.form['doubles']),
-        }
-
-        first_name = str(request.form['player']).split(' ')[0]
-        last_name = str(request.form['player']).split(' ')[1]
-
-        op_first = str(request.form['selectedOpponent']).split(' ')[0]
-        op_second = str(request.form['selectedOpponent']).split(' ')[1]
-
-        player = Player.query.filter(Player.first_name == first_name, Player.last_name == last_name).one()
-        opponent = Player.query.filter(Player.first_name == op_first, Player.last_name == op_second).one()
-
-        game = Game(
-          player_id = player.id,
-          singles=int(request.form['singles']),
-          doubles = int(request.form['doubles']),
-          triples = int(request.form['triples']),
-          home_runs = int(request.form['homeRuns']),
-          strikeouts = int(request.form['strikeouts']),
-          outs = int(request.form['outs']),
-          base_on_balls = int(request.form['baseOnBalls']),
-          hit_by_pitch = int(request.form['hitByPitch']),
-          runs_batted_in =int(request.form['runsBattedIn']),
-          error = int(request.form['error']),
-          stolen_bases = int(request.form['stolenBases']),
-          caught_stealing = int(request.form['caughtStealing']),
-          innings_pitched = int(request.form['inningsPitched']),
-          earned_runs = int(request.form['earnedRuns']),
-          runs = int(request.form['runs']),
-          pitching_strikeouts = int(request.form['pitchingStrikeouts']),
-          pitching_base_on_balls = int(request.form['pitchingBaseOnBalls']),
-          saves = int(request.form['saves']),
-          blown_saves = int(request.form['blownSaves']),
-          win = int(request.form['win']),
-          loss = int(request.form['loss']),
-          opponent_id = opponent.id,
-          total_innings = int(request.form['totalInnings']),
-          player = player,
-          opponent = opponent
-        )
-
-        sql_db.session.add(game)
         sql_db.session.commit()
-
-        # db.collection(u'games').document(u'{}'.format(game_id)).update(updated_game)
       except Exception as e:
         print(e)
-        flash('Game update failed, try again', 'error')
+        flash('Game update failed, try again', 'danger')
         return redirect(url_for('index'))
 
 
@@ -172,10 +135,6 @@ def game(game_id):
   else: 
     return "no game data"
 
-
-@app.route('/api')
-def status():
-  return jsonify({'status': 'Up and running'})
 
 @app.route('/api/update_sheet/<uid>')
 def api(uid):
@@ -194,10 +153,66 @@ def api(uid):
   else:
     return jsonify({'success': False, 'completed': False})
 
-@app.route('/sql_test')
-def sql_test():
-  players = Player.query.filter(Player.last_name == 'Brown').all()
-  for player in players:
-    print('{} {} {}'.format(player.id, player.first_name, player.admin))
-  return "hello"
+
+############ Util routes ############
+
+@app.route('/migrate')
+def migrate():
+  stats_builder.query_database()
+
+  for game in stats_builder.games:
+    opponent = None
+
+    first_name, last_name = game.get('player').split(' ')
+    player = Player.query.filter(Player.first_name == first_name, Player.last_name == last_name).one()
+
+    if game.get('selectedOpponent'):
+      op_first, op_second = game.get('selectedOpponent').split(' ')
+      opponent = Player.query.filter(Player.first_name == op_first, Player.last_name == op_second).one()
+
+    game = Game(
+      player_id = player.id,
+      singles=game.get('singles'),
+      doubles = game.get('doubles'),
+      triples = game.get('triples'),
+      home_runs = game.get('homeRuns'),
+      strikeouts = game.get('strikeouts'),
+      outs = game.get('outs'),
+      base_on_balls = game.get('baseOnBalls'),
+      hit_by_pitch = game.get('hitByPitch'),
+      runs_batted_in =game.get('runsBattedIn'),
+      error = game.get('error'),
+      stolen_bases = game.get('stolenBases'),
+      caught_stealing = game.get('caughtStealing'),
+      innings_pitched = game.get('inningsPitched'),
+      earned_runs = game.get('earnedRuns'),
+      runs = game.get('runs'),
+      pitching_strikeouts = game.get('pitchingStrikeouts'),
+      pitching_base_on_balls = game.get('pitchingBaseOnBalls'),
+      saves = game.get('saves'),
+      blown_saves = game.get('blownSaves'),
+      win = game.get('win'),
+      loss = game.get('loss'),
+      opponent_id = (opponent.id if opponent else None),
+      total_innings = game.get('totalInnings'),
+      player = player,
+      opponent = opponent,
+      captain=game.get('isCaptain'),
+      game_won=game.get('isGameWon'),
+      winner_score=game.get('winnerScore'),
+      loser_score=game.get('loserScore')
+    )
+
+    sql_db.session.add(game)
+
+  sql_db.session.commit()
+
+  return "success"
+
+
+@app.route('/delete')
+def delete():
+  sql_db.session.query(Game).delete()
+  sql_db.session.commit()
+  return "success"
   

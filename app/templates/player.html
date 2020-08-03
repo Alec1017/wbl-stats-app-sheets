@@ -4,7 +4,7 @@
     <h1>{{ player.firstName }} {{ player.lastName }}</h1>
     <ul class="list-group">
         {% for game in games %}
-            <li class="list-group-item"><a href="game/{{game.id}}">Date: {{ game.date }}&nbsp;&nbsp;&nbsp;&nbsp;Opponent: {{ game.selectedOpponent }}</a></li>
+            <li class="list-group-item"><a href="game/{{game.id}}">Date: {{ game.created_at.strftime('%D') }}&nbsp;&nbsp;&nbsp;&nbsp;Opponent: {{ game.opponent.first_name }} {{ game.opponent.last_name }}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}

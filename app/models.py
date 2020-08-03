@@ -72,6 +72,10 @@ class Game(db.Model):
   loss = db.Column(db.Integer, default=0)
 
   opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+  captain = db.Column(db.Boolean, index=True, default=False)
+  game_won = db.Column(db.Boolean, default=False)
+  winner_score = db.Column(db.Integer, default=0)
+  loser_score = db.Column(db.Integer, default=0)
   total_innings = db.Column(db.Integer, default=3)
 
   # Relationships
