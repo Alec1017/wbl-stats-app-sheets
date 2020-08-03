@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-    <h1>{{ game.date }}</h1>
+    <h2>{{ game.created_at.strftime('%D') }} {{ game.player.first_name }} {{ game.player.last_name}}</h2>
     {% from "includes/_formhelpers.html" import render_field %}
 
     <form method="POST" action="">

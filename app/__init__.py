@@ -38,6 +38,7 @@ scopes = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 spreadsheet_id = os.getenv("SPREADSHEET_ID")
+test_spreadsheet_id = os.getenv("TEST_SPREADSHEET_ID")
 range_name = 'Stats'
 range_name_sheet_two = 'Standings'
 range_name_sheet_three = 'Game Log'

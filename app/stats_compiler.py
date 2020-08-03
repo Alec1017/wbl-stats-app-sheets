@@ -1,18 +1,14 @@
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
-from app import db, sheet, spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
+from app import sheet, test_spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
 from app.email import send_email
+from app.models import Game, Player
 from app.slack import SlackBot
 from app.stats_helpers import calcHits, calcAtBats, calcOBP, calcAVG, calcSLG, calcOPS, calcERA, calcInningsPitched
 
 
-class StatsBuilder:
-  users = []
-  games = []
-
-  email_list = []
-  admin_users = []
-
+class StatsCompiler:
   slack_bot = None
 
   sheet_one_range = None
@@ -22,10 +18,6 @@ class StatsBuilder:
   sheet_api = None
   sheet_id = None
 
-  built_stats = []
-  built_standings = []
-  built_game_log = []
-
 
   def __init__(self):
     self.slack_bot = SlackBot()
@@ -33,103 +25,58 @@ class StatsBuilder:
     self.sheet_two_range = range_name_sheet_two
     self.sheet_three_range = range_name_sheet_three
     self.sheet_api = sheet
-    self.sheet_id = spreadsheet_id
-
-
-  def query_all_users(self):
-    try:
-      users = db.collection(u'users').stream()
-      return [user.to_dict() for user in users]
-    except Exception as e:
-      message = "Could not get users from firebase.\n\n{}".format(str(e))
-      self.slack_bot.send_message(message=message)
-
-
-  def query_all_games(self):
-    try:
-      games = db.collection(u'games').stream()
-      dict_games = []
-      for game in games:
-        game_id = game.id
-        game_dict = game.to_dict()
-        game_dict['id'] = game_id
-        dict_games.append(game_dict)
-      dict_games.sort(key=lambda game: datetime.strptime(game.get('date'), '%a %b %d %Y'))
-      return dict_games
-    except Exception as e:
-      message = "Could not get games from firebase.\n\n{}".format(str(e))
-      self.slack_bot.send_message(message=message)
-
-  def query_database(self):
-    self.users = self.query_all_users()
-    self.games = self.query_all_games()
-
-
-  def build_subscribed_users_and_admins(self):
-    for user in self.users:
-      if user.get('isAdmin'):
-        self.admin_users.append(user.get('uid'))
-
-      if user.get('subscribed'):
-        self.email_list.append((user.get('firstName'), user.get('email')))
+    self.sheet_id = test_spreadsheet_id
 
   
   def send_emails(self):
-    for name, email in self.email_list:
-      send_email(name, '2020 WBL Stats', email)
-    
-    self.email_list = []
+    players = Player.query.filter(Player.subscribed == True).all()
+
+    for player in players:
+      send_email(player.first_name, '2020 WBL Stats', player.email)
+
 
   def build_game_log(self):
     log_title_row = ['Game Log']
-
     log_values = [log_title_row]
 
-    for game in self.games:
-      log_string = "{} beat {} {}-{} on {}"
-      if game.get('isGameWon'):
-        winner = game.get('player')
-        loser = game.get('selectedOpponent')
-        winner_score = game.get('winnerScore')
-        loser_score = game.get('loserScore')
-        total_innings = game.get('totalInnings', 3)
-        date = game.get('date')
-        
-        log_string = "{} beat {} {}-{} in {} innings on {}".format(
-          winner, loser, winner_score, loser_score, total_innings, date
-        )
+    games = Game.query.options(joinedload(Game.player), joinedload(Game.opponent)).filter(Game.game_won == True).all()
 
-        log_values.append([log_string])
-    
-    self.built_game_log = log_values
+    for game in games:
+      winner = '{} {}'.format(game.player.first_name, game.player.last_name)
+      loser = '{} {}'.format(game.opponent.first_name, game.opponent.last_name)
+      
+      log_string = "{} beat {} {}-{} in {} innings on {}".format(
+        winner, loser, game.winner_score, game.loser_score, game.total_innings, game.created_at
+      )
+
+      log_values.append([log_string])
+
+    return log_values
 
 
   def build_standings(self):
     standings_title_row = ['Player', 'W', 'L']
     standings_values = {}
 
-    for user in self.users:
-      first_name = user.get('firstName')
-      last_name = user.get('lastName')
-      full_name = u'{} {}'.format(first_name, last_name)
-      division = str(user.get('division'))
+    players = Player.query.options(joinedload(Player.games)).all()
 
+    for player in players:
       games_won = 0
       games_lost = 0
-      games = filter(lambda game: game.get('player') == full_name, self.games)
 
-      for game in games:
-        if game.get('isCaptain') and game.get('isGameWon'):
+      player_name = '{} {}'.format(player.first_name, player.last_name)
+
+      for game in player.games:
+        if game.captain and game.game_won:
           games_won += 1
 
-        if game.get('isCaptain') and not game.get('isGameWon'):
+        if game.captain and not game.game_won:
           games_lost += 1
 
-      
-      if standings_values.get(division):
-        standings_values[division].append([full_name, games_won, games_lost])
+      if standings_values.get(player.division):
+        standings_values[player.division].append([player_name, games_won, games_lost])
       else:
-        standings_values[division] = [[full_name, games_won, games_lost]]
+        standings_values[player.division] = [[player_name, games_won, games_lost]]
 
 
     standings_tuple = [(div, row) for div, row in standings_values.items()] 
@@ -143,7 +90,7 @@ class StatsBuilder:
       final_standings +=rows
       final_standings.append([])
 
-    self.built_standings = final_standings
+    return final_standings
       
 
   def build_stats(self):
@@ -155,12 +102,11 @@ class StatsBuilder:
 
     stats_values = [stats_title_row, []]
 
-    for user in self.users:
-      first_name = user.get('firstName')
-      last_name = user.get('lastName')
-      full_name = u'{} {}'.format(first_name, last_name)
-      games = filter(lambda game: game.get('player') == full_name, self.games)
-      
+    players = Player.query.options(joinedload(Player.games)).all()
+
+    for player in players:
+      player_name = '{} {}'.format(player.first_name, player.last_name)
+
       hits = 0
       at_bats = 0
       on_base_percentage = 0
@@ -192,36 +138,35 @@ class StatsBuilder:
 
       errors = 0
 
-
       stats_sheet_row = []
 
       # Summing up all the stats for a player
-      for stats in games: 
-        singles += stats.get('singles')
-        doubles += stats.get('doubles')
-        triples += stats.get('triples')
-        home_runs += stats.get('homeRuns')
-        hit_by_pitch += stats.get('hitByPitch')
-        base_on_balls += stats.get('baseOnBalls')
-        runs_batted_in += stats.get('runsBattedIn')
-        strikeouts += stats.get('strikeouts')
-        stolen_bases += stats.get('stolenBases')
-        caught_stealing += stats.get('caughtStealing', 0)
-        outs += stats.get('outs')
+      for stats in player.games: 
+        singles += stats.singles
+        doubles += stats.doubles
+        triples += stats.triples
+        home_runs += stats.home_runs
+        hit_by_pitch += stats.hit_by_pitch
+        base_on_balls += stats.base_on_balls
+        runs_batted_in += stats.runs_batted_in
+        strikeouts += stats.strikeouts
+        stolen_bases += stats.stolen_bases
+        caught_stealing += stats.caught_stealing
+        outs += stats.outs
         games_played += 1
 
-        innings_pitched += stats.get('inningsPitched')
-        earned_runs += stats.get('earnedRuns')
-        runs += stats.get('runs')
-        pitching_strikeouts += stats.get('pitchingStrikeouts')
-        pitching_base_on_balls += stats.get('pitchingBaseOnBalls')
-        saves += stats.get('saves')
-        blown_saves += stats.get('blownSaves', 0)
-        wins += stats.get('win')
-        losses += stats.get('loss')
+        innings_pitched += stats.innings_pitched
+        earned_runs += stats.earned_runs
+        runs += stats.runs
+        pitching_strikeouts += stats.pitching_strikeouts
+        pitching_base_on_balls += stats.pitching_base_on_balls
+        saves += stats.saves
+        blown_saves += stats.blown_saves
+        wins += stats.win
+        losses += stats.loss
 
-        errors += stats.get('error')
-
+        errors += stats.error
+      
       # Calculate stats
       hits = calcHits(singles, doubles, triples, home_runs)
       at_bats = calcAtBats(hits, outs, strikeouts)
@@ -233,7 +178,7 @@ class StatsBuilder:
       earned_run_average = calcERA(earned_runs, innings_pitched)
 
       stats_sheet_row += [
-        full_name,
+        player_name,
         hits,
         at_bats,
         on_base_percentage,
@@ -269,7 +214,7 @@ class StatsBuilder:
 
       stats_values += [stats_sheet_row, []]
 
-    self.built_stats = stats_values 
+    return stats_values 
 
 
   def clear_all_sheets(self):
@@ -279,26 +224,26 @@ class StatsBuilder:
       message = "Google Sheet was not successfully cleared.\n\n{}".format(str(e))
       self.slack_bot.send_message(message=message)
 
+
   def update_all_sheets(self):
     try:
       result = self.sheet_api.values().update(
         spreadsheetId=self.sheet_id, range=self.sheet_one_range,
-        valueInputOption='USER_ENTERED', body={'values': self.built_stats}).execute()
+        valueInputOption='USER_ENTERED', body={'values': self.build_stats()}).execute()
 
       standings_result = self.sheet_api.values().update(
         spreadsheetId=self.sheet_id, range=self.sheet_two_range,
-        valueInputOption='USER_ENTERED', body={'values': self.built_standings}).execute()
+        valueInputOption='USER_ENTERED', body={'values': self.build_standings()}).execute()
 
       game_log_result = self.sheet_api.values().update(
         spreadsheetId=self.sheet_id, range=self.sheet_three_range,
-        valueInputOption='USER_ENTERED', body={'values': self.built_game_log}).execute()
+        valueInputOption='USER_ENTERED', body={'values': self.build_game_log()}).execute()
     except Exception as e:
       message = "Google Sheet was not successfully updated.\n\n{}".format(str(e))
       self.slack_bot.send_message(message=message)
       return {'success': False, 'completed': False}
     else:
       self.send_emails()
-      self.admin_users = []
 
       message = "Google Sheet was successfully updated!"
       self.slack_bot.send_message(message=message)

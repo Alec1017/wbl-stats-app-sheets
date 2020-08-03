@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-    <h1>{{ player.firstName }} {{ player.lastName }}</h1>
+    <h2>{{ player.first_name }} {{ player.last_name }}</h2>
     <ul class="list-group">
         {% for game in games %}
             <li class="list-group-item"><a href="game/{{game.id}}">Date: {{ game.created_at.strftime('%D') }}&nbsp;&nbsp;&nbsp;&nbsp;Opponent: {{ game.opponent.first_name }} {{ game.opponent.last_name }}</a></li>

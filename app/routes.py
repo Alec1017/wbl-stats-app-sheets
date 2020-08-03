@@ -3,13 +3,19 @@ from flask import jsonify, render_template, request, flash, redirect, url_for
 from app import app, db,sql_db
 from app.email import send_email
 from app.models import Player, Game, GameLog
-from app.stats_builder import StatsBuilder
+from app.stats_compiler import StatsCompiler
 from .forms import GameForm
 
 
-stats_builder = StatsBuilder()
+stats_compiler = StatsCompiler()
 
 
+######################################
+############ Admin portal ############
+######################################
+
+
+# Landing page
 @app.route('/')
 def index():
   players = Player.query.all()
@@ -17,11 +23,7 @@ def index():
   return render_template('home.html', players=players)
 
 
-@app.route('/api')
-def status():
-  return jsonify({'status': 'Up and running'})
-
-
+# Shows all player games
 @app.route('/player/<uid>')
 def player(uid):
 
@@ -34,6 +36,7 @@ def player(uid):
     return "no player data"
 
 
+# Shows all stats for a particular player's game
 @app.route('/player/game/<game_id>', methods=['GET', 'POST'])
 def game(game_id):
   form = GameForm(request.form)
@@ -136,26 +139,37 @@ def game(game_id):
     return "no game data"
 
 
+######################################
+############### API ##################
+######################################
+
+
+# Check the app status
+@app.route('/api/status')
+def status():
+  return jsonify({'status': 'Up and running'})
+
+
+# Update the stat sheet
 @app.route('/api/update_sheet/<uid>')
 def api(uid):
-  stats_builder.query_database()
-  stats_builder.build_subscribed_users_and_admins()
+  admin_user = Player.query.filter(Player.admin == True, Player.id == uid).first()
 
-  if uid in stats_builder.admin_users:
-    stats_builder.build_stats()
-    stats_builder.build_standings()
-    stats_builder.build_game_log()
-    stats_builder.clear_all_sheets()
-
-    results = stats_builder.update_all_sheets()
-
-    return jsonify(results)
-  else:
+  if not admin_user:
     return jsonify({'success': False, 'completed': False})
 
+  stats_compiler.clear_all_sheets()
+  results = stats_compiler.update_all_sheets()
 
-############ Util routes ############
+  return jsonify(results)
 
+
+######################################
+############ Util routes #############
+######################################
+
+
+# Converts all firebase stored games into MySQL stored games
 @app.route('/migrate')
 def migrate():
   stats_builder.query_database()
@@ -210,6 +224,7 @@ def migrate():
   return "success"
 
 
+# Deletes all stored games
 @app.route('/delete')
 def delete():
   sql_db.session.query(Game).delete()
