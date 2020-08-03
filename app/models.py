@@ -1,8 +1,6 @@
 from datetime import datetime
 
-from app import sql_db
-
-db = sql_db
+from app import db
 
 
 class Player(db.Model):

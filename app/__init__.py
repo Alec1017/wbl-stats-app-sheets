@@ -7,9 +7,6 @@ import pickle
 from dotenv import load_dotenv
 import os
 import os.path
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -22,16 +19,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
   os.getenv('MYSQL_USERNAME'), os.getenv('MYSQL_PASSWORD'), os.getenv('MYSQL_ENDPOINT'), os.getenv('MYSQL_DB')
 )
-sql_db = SQLAlchemy(app)
 
-migrate = Migrate(app, sql_db)
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 app.secret_key = os.getenv("SECRET_KEY")
-
-cred = credentials.Certificate('firebase-credentials.json')
-firebase_admin.initialize_app(cred)
-
-db = firestore.client()
 
 # If modifying these scopes, delete the file token.pickle.
 scopes = ['https://www.googleapis.com/auth/spreadsheets']

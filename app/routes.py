@@ -1,13 +1,13 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for
 
-from app import app, db,sql_db
+from app import app, db, sheet, test_spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
 from app.email import send_email
 from app.models import Player, Game, GameLog
 from app.stats_compiler import StatsCompiler
 from .forms import GameForm
 
 
-stats_compiler = StatsCompiler()
+stats_compiler = StatsCompiler(sheet, range_name, range_name_sheet_two, range_name_sheet_three, test_spreadsheet_id)
 
 
 ######################################
@@ -124,7 +124,7 @@ def game(game_id):
         game.player = player
         game.opponent = opponent
 
-        sql_db.session.commit()
+        db.session.commit()
       except Exception as e:
         print(e)
         flash('Game update failed, try again', 'danger')
@@ -162,72 +162,3 @@ def api(uid):
   results = stats_compiler.update_all_sheets()
 
   return jsonify(results)
-
-
-######################################
-############ Util routes #############
-######################################
-
-
-# Converts all firebase stored games into MySQL stored games
-@app.route('/migrate')
-def migrate():
-  stats_builder.query_database()
-
-  for game in stats_builder.games:
-    opponent = None
-
-    first_name, last_name = game.get('player').split(' ')
-    player = Player.query.filter(Player.first_name == first_name, Player.last_name == last_name).one()
-
-    if game.get('selectedOpponent'):
-      op_first, op_second = game.get('selectedOpponent').split(' ')
-      opponent = Player.query.filter(Player.first_name == op_first, Player.last_name == op_second).one()
-
-    game = Game(
-      player_id = player.id,
-      singles=game.get('singles'),
-      doubles = game.get('doubles'),
-      triples = game.get('triples'),
-      home_runs = game.get('homeRuns'),
-      strikeouts = game.get('strikeouts'),
-      outs = game.get('outs'),
-      base_on_balls = game.get('baseOnBalls'),
-      hit_by_pitch = game.get('hitByPitch'),
-      runs_batted_in =game.get('runsBattedIn'),
-      error = game.get('error'),
-      stolen_bases = game.get('stolenBases'),
-      caught_stealing = game.get('caughtStealing'),
-      innings_pitched = game.get('inningsPitched'),
-      earned_runs = game.get('earnedRuns'),
-      runs = game.get('runs'),
-      pitching_strikeouts = game.get('pitchingStrikeouts'),
-      pitching_base_on_balls = game.get('pitchingBaseOnBalls'),
-      saves = game.get('saves'),
-      blown_saves = game.get('blownSaves'),
-      win = game.get('win'),
-      loss = game.get('loss'),
-      opponent_id = (opponent.id if opponent else None),
-      total_innings = game.get('totalInnings'),
-      player = player,
-      opponent = opponent,
-      captain=game.get('isCaptain'),
-      game_won=game.get('isGameWon'),
-      winner_score=game.get('winnerScore'),
-      loser_score=game.get('loserScore')
-    )
-
-    sql_db.session.add(game)
-
-  sql_db.session.commit()
-
-  return "success"
-
-
-# Deletes all stored games
-@app.route('/delete')
-def delete():
-  sql_db.session.query(Game).delete()
-  sql_db.session.commit()
-  return "success"
-  

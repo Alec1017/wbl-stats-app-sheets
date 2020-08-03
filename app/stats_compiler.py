@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 
-from app import sheet, test_spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
 from app.email import send_email
 from app.models import Game, Player
 from app.slack import SlackBot
@@ -19,13 +18,13 @@ class StatsCompiler:
   sheet_id = None
 
 
-  def __init__(self):
+  def __init__(self, sheet_api, sheet_one, sheet_two, sheet_three, sheet_id):
     self.slack_bot = SlackBot()
-    self.sheet_one_range = range_name
-    self.sheet_two_range = range_name_sheet_two
-    self.sheet_three_range = range_name_sheet_three
-    self.sheet_api = sheet
-    self.sheet_id = test_spreadsheet_id
+    self.sheet_api = sheet_api
+    self.sheet_one_range = sheet_one
+    self.sheet_two_range = sheet_two
+    self.sheet_three_range = sheet_three
+    self.sheet_id = sheet_id
 
   
   def send_emails(self):

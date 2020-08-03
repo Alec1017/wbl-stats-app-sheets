@@ -1,6 +1,5 @@
 .env
 
-firebase-credentials.json
 sheets-credentials.json
 *.pickle
 
