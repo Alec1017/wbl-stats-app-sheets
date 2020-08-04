@@ -316,3 +316,32 @@ def earned_run_average(uid):
   results['rolling_earned_run_averages'] = rolling_averages
 
   return jsonify(results)
+
+
+# Query leaderboards
+@app.route('/api/analytics/leaderboard/<stat>')
+def leaderboard(stat):
+  valid_stats = {
+    'home_runs': Game.home_runs, 
+    'stolen_bases': Game.stolen_bases, 
+    'error': Game.error
+  }
+
+  if not valid_stats.get(stat):
+    return jsonify({'success': False, 'completed': False})
+
+  leaderboard = db.session.query(Player.first_name, 
+                             Player.last_name,
+                             func.sum(valid_stats.get(stat))) \
+                .join(Game, Player.id == Game.player_id) \
+                .group_by(Player.id).all()
+
+  results = []
+  for first_name, last_name, stat in leaderboard:
+    results.append({
+      'first_name': first_name,
+      'last_name': last_name,
+      'data': int(stat)
+    })
+
+  return jsonify(results)
