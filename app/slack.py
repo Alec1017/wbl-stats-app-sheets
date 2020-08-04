@@ -1,10 +1,10 @@
 import slack
 
-from app import slack_token
+from app import app
 
 
 class SlackBot:
-  token = slack_token
+  token = app.config['SLACK_TOKEN']
   connection = None
   channel = '#scripting'
 

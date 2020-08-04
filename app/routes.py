@@ -1,13 +1,19 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for
 
-from app import app, db, sheet, test_spreadsheet_id, range_name, range_name_sheet_two, range_name_sheet_three
+from app import app, db, sheet
 from app.email import send_email
 from app.forms import GameForm
 from app.models import Player, Game, GameLog
 from app.stats_compiler import StatsCompiler
 
 
-stats_compiler = StatsCompiler(sheet, range_name, range_name_sheet_two, range_name_sheet_three, test_spreadsheet_id)
+stats_compiler = StatsCompiler(
+                   sheet, 
+                   app.config['RANGE_NAME'], 
+                   app.config['RANGE_NAME_SHEET_TWO'],
+                   app.config['RANGE_NAME_SHEET_THREE'],
+                   app.config['TEST_SPREADSHEET_ID']
+                 )
 
 
 ######################################
