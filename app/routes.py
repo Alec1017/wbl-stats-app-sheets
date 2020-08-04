@@ -174,7 +174,7 @@ def api(uid):
 
 
 # Query the current standings
-@app.route('/standings')
+@app.route('/api/standings')
 def standings():
   standings_dict = {}
 
@@ -205,3 +205,11 @@ def standings():
       standings_dict[division] = [[full_name, int(wins), int(losses)]]
 
   return jsonify(standings_dict)
+
+
+@app.route('/api/opponents/<uid>')
+def opponents(uid):
+  opponents = db.session.query(Player.first_name, Player.last_name).filter(Player.id != uid).all()
+  full_name_opponents = ['{} {}'.format(first_name, last_name) for first_name, last_name in opponents]
+
+  return jsonify(full_name_opponents)
