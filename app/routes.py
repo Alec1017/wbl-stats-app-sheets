@@ -8,6 +8,7 @@ from app.email import send_email
 from app.forms import GameForm
 from app.models import Player, Game, GameLog
 from app.stats_compiler import StatsCompiler
+from app.stats_helpers import calcHits, calcAtBats, calcAVG
 
 
 stats_compiler = StatsCompiler(
@@ -207,9 +208,42 @@ def standings():
   return jsonify(standings_dict)
 
 
+# Query a list of opponents names
 @app.route('/api/opponents/<uid>')
 def opponents(uid):
   opponents = db.session.query(Player.first_name, Player.last_name).filter(Player.id != uid).all()
   full_name_opponents = ['{} {}'.format(first_name, last_name) for first_name, last_name in opponents]
 
   return jsonify(full_name_opponents)
+
+
+@app.route('/api/analytics/batting_average/<uid>')
+def batting_average(uid):
+  results = {}
+
+  def get_average(stats):
+    singles, doubles, triples, home_runs, outs, strikeouts = stats
+    hits = calcHits(singles, doubles, triples, home_runs)
+    at_bats = calcAtBats(hits, outs, strikeouts)
+    
+    return calcAVG(hits, at_bats)
+
+  base_query = db.session.query(func.sum(Game.singles), 
+                            func.sum(Game.doubles), 
+                            func.sum(Game.triples), 
+                            func.sum(Game.home_runs),
+                            func.sum(Game.outs),
+                            func.sum(Game.strikeouts)) \
+                  .join(Player, Player.id == Game.player_id)
+
+  player_stats = base_query.filter(Player.id == uid).first()
+  league_stats = base_query.first()
+
+  results['player_avg'] = get_average(player_stats)
+  results['league_avg'] = get_average(league_stats)
+
+
+
+  
+  
+  return jsonify(results)
