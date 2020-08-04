@@ -2,6 +2,7 @@ from flask import jsonify, render_template, request, flash, redirect, url_for
 from sqlalchemy import case, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
+import operator
 
 from app import app, db, sheet
 from app.email import send_email
@@ -226,6 +227,10 @@ def batting_average(uid):
     hits = calcHits(singles, doubles, triples, home_runs)
     at_bats = calcAtBats(hits, outs, strikeouts)
     
+    # safeguard in case anything odd is happening
+    if at_bats == 0:
+      return 0
+    
     return calcAVG(hits, at_bats)
 
   base_query = db.session.query(func.sum(Game.singles), 
@@ -243,7 +248,24 @@ def batting_average(uid):
   results['league_avg'] = get_average(league_stats)
 
 
+  most_recent_games = db.session.query(Game.singles, Game.doubles, Game.triples, 
+                                       Game.home_runs, Game.outs, Game.strikeouts) \
+                        .join(Player, Player.id == Game.player_id) \
+                        .filter(Player.id == uid) \
+                        .order_by(Game.created_at).limit(10).all()
 
-  
-  
+  rolling_averages = []
+  cumulative_games = None
+  for game in most_recent_games:
+    if cumulative_games:
+      cumulative_games = tuple(map(operator.add, cumulative_games, game))
+    else:
+      cumulative_games = game
+
+    avg = get_average(cumulative_games)
+    rolling_averages.append(avg)
+
+  results['rolling_batting_averages'] = rolling_averages
+
+
   return jsonify(results)
