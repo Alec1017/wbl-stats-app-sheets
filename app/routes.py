@@ -9,7 +9,7 @@ from app.email import send_email
 from app.forms import GameForm
 from app.models import Player, Game, GameLog
 from app.stats_compiler import StatsCompiler
-from app.stats_helpers import calcHits, calcAtBats, calcAVG
+from app.stats_helpers import calcHits, calcAtBats, calcAVG, calcERA, calcInningsPitched
 
 
 stats_compiler = StatsCompiler(
@@ -267,5 +267,52 @@ def batting_average(uid):
     rolling_averages.append(avg)
 
   results['rolling_batting_averages'] = rolling_averages
+
+  return jsonify(results)
+
+
+# Query ERA analytics data
+@app.route('/api/analytics/earned_run_average/<uid>')
+def earned_run_average(uid):
+  results = {}
+
+  def get_earned_run_average(stats):
+    earned_runs, outs_pitched = stats
+    innings_pitched = calcInningsPitched(int(outs_pitched))
+    
+    # safeguard in case anything odd is happening
+    if innings_pitched == 0:
+      return 0
+    
+    return calcERA(int(earned_runs), innings_pitched)
+
+  base_query = db.session.query(func.sum(Game.earned_runs), 
+                            func.sum(Game.innings_pitched)) \
+                  .join(Player, Player.id == Game.player_id)
+
+  player_stats = base_query.filter(Player.id == uid).first()
+  league_stats = base_query.first()
+
+  results['player_avg'] = get_earned_run_average(player_stats)
+  results['league_avg'] = get_earned_run_average(league_stats)
+
+
+  most_recent_games = db.session.query(Game.earned_runs, Game.innings_pitched) \
+                        .join(Player, Player.id == Game.player_id) \
+                        .filter(Player.id == uid) \
+                        .order_by(Game.created_at).limit(10).all()
+
+  rolling_averages = []
+  cumulative_games = None
+  for game in most_recent_games:
+    if cumulative_games:
+      cumulative_games = tuple(map(operator.add, cumulative_games, game))
+    else:
+      cumulative_games = game
+
+    avg = get_earned_run_average(cumulative_games)
+    rolling_averages.append(avg)
+
+  results['rolling_earned_run_averages'] = rolling_averages
 
   return jsonify(results)
