@@ -218,6 +218,7 @@ def opponents(uid):
   return jsonify(full_name_opponents)
 
 
+# Query batting average analytics data
 @app.route('/api/analytics/batting_average/<uid>')
 def batting_average(uid):
   results = {}
@@ -266,6 +267,5 @@ def batting_average(uid):
     rolling_averages.append(avg)
 
   results['rolling_batting_averages'] = rolling_averages
-
 
   return jsonify(results)
