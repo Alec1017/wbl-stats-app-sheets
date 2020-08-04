@@ -1,4 +1,7 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for
+from sqlalchemy import case, and_
+from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import func
 
 from app import app, db, sheet
 from app.email import send_email
@@ -168,3 +171,37 @@ def api(uid):
   results = stats_compiler.update_all_sheets()
 
   return jsonify(results)
+
+
+# Query the current standings
+@app.route('/standings')
+def standings():
+  standings_dict = {}
+
+  wins_case = case(
+    [(and_(Game.game_won == True, Game.captain == True), 1)],
+    else_=0
+  )
+
+  losses_case = case(
+    [(and_(Game.game_won == False, Game.captain == True), 1)],
+    else_=0
+  )
+
+  standings = db.session.query(Player.division, 
+                               Player.first_name, 
+                               Player.last_name, 
+                               func.sum(wins_case).label('wins'), 
+                               func.sum(losses_case).label('losses')) \
+                .join(Game, Player.id == Game.player_id) \
+                .group_by(Player.id).all()
+
+  for division, first_name, last_name, wins, losses in standings:
+    full_name = '{} {}'.format(first_name, last_name)
+
+    if standings_dict.get(division):
+      standings_dict[division].append([full_name, int(wins), int(losses)])
+    else:
+      standings_dict[division] = [[full_name, int(wins), int(losses)]]
+
+  return jsonify(standings_dict)
