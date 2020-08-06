@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "70895156cfab620f757a10372f050e21d5d7cc5aafd8411ad1419184882adb64"
+            "sha256": "e1f3aa8c0eafe0cc7743a1720a2d209fc5e192a11c3ae1374765b2cb813c6ebc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -112,7 +112,6 @@
             "version": "==2.4.4"
         },
         "google-api-core": {
-            "extras": [],
             "hashes": [
                 "sha256:aaedc40ae977dbc2710f0de0012b673c8c7644f81ca0c93e839d22895f2ff29d",
                 "sha256:c4e3b3d914e09d181287abb7101b42f308204fa5e8f89efc4839f607303caa2f"
@@ -342,6 +341,14 @@
                 "sha256:fe0644d9ab041506b62782e92b06b8c68cca799e1a9636ec398675459e031405"
             ],
             "version": "==0.2.8"
+        },
+        "pyjwt": {
+            "hashes": [
+                "sha256:5c6eca3c2940464d106b99ba83b00c6add741c9becaec087fb7ccdefea71350e",
+                "sha256:8d59a976fb773f3e6a39c85636357c4f0e242707394cadadd9814f5cbaa20e96"
+            ],
+            "index": "pypi",
+            "version": "==1.7.1"
         },
         "pymysql": {
             "hashes": [

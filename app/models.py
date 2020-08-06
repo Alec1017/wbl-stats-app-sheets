@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
 
-from app import db
+from app import app, db
 
 
 class Player(db.Model):
@@ -10,12 +11,42 @@ class Player(db.Model):
   first_name = db.Column(db.String(45), index=True)
   last_name = db.Column(db.String(45), index=True)
   email = db.Column(db.String(100), index=True, unique=True)
+  password = db.Column(db.String(100), nullable=True)
   division = db.Column(db.Integer, index=True)
   admin = db.Column(db.Boolean, index=True, default=False)
   subscribed = db.Column(db.Boolean, index=True, default=True)
 
   # Relationships
   games = db.relationship('Game', back_populates='player', foreign_keys='Game.player_id')
+
+  def encode_auth_token(self, player_id):
+    try:
+        payload = {
+            'exp': datetime.utcnow() + timedelta(days=0, seconds=5),
+            'iat': datetime.utcnow(),
+            'sub': player_id
+        }
+        return jwt.encode(
+            payload,
+            app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+    except Exception as e:
+        return e
+
+  @staticmethod
+  def decode_auth_token(auth_token):
+    try:
+        payload = jwt.decode(auth_token, app.config['SECRET_KEY'])
+
+        if TokenDenylist.check_denylist(auth_token):
+            return 'Token blacklisted. Please log in again.'
+
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please login again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please login again.'
 
   def __repr__(self):
     return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
@@ -82,3 +113,22 @@ class Game(db.Model):
 
   def __repr__(self):
     return '<Game {}>'.format(self.id)
+
+
+class TokenDenylist(db.Model):
+  __tablename__ = 'token_denylist'
+
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  token = db.Column(db.String(500), unique=True, nullable=False)
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+  @staticmethod
+  def check_denylist(auth_token):
+    response = TokenDenylist.query.filter_by(token=str(auth_token)).first()
+    if response:
+        return True  
+    else:
+        return False
+
+  def __repr__(self):
+      return '<TokenDenylist {}>'.format(self.token)

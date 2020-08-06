@@ -1,4 +1,6 @@
-from flask import jsonify, render_template, request, flash, redirect, url_for
+from flask import jsonify, render_template, request, flash, redirect, url_for, abort
+from werkzeug.security import generate_password_hash
+from functools import wraps
 from sqlalchemy import case, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
@@ -7,7 +9,7 @@ import operator
 from app import app, db, sheet
 from app.email import send_email
 from app.forms import GameForm
-from app.models import Player, Game, GameLog
+from app.models import Player, Game, GameLog, TokenDenylist
 from app.stats_compiler import StatsCompiler
 from app.stats_helpers import calcHits, calcAtBats, calcAVG, calcERA, calcInningsPitched
 
@@ -153,6 +155,29 @@ def game(game_id):
 ######################################
 ############### API ##################
 ######################################
+
+def authorize(f):
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+    auth_token = None
+    auth_header = request.headers.get('Authorization')
+
+    if not auth_header:
+      abort(401)
+
+    try:
+      auth_token = auth_header.split(' ')[1]
+    except IndexError:
+      abort(401)
+
+    decoded_token = Player.decode_auth_token(auth_token)
+
+    # Make sure we get an ID and not an error message
+    if isinstance(decoded_token, str):
+      abort(401)
+
+    return f(decoded_token, *args, **kwargs)            
+  return decorated_function
 
 
 # Check the app status
@@ -345,3 +370,88 @@ def leaderboard(stat):
     })
 
   return jsonify(results)
+
+
+
+######################################
+############# Auth ###############
+######################################
+
+@app.route('/auth/signup', methods=['POST'])
+def sign_up():
+  data = request.get_json()
+
+  player = Player.query.filter(Player.email == data.get('email')).first()
+
+  if player:
+    return jsonify({'success': False, 'message': 'An account with that email already exists'})
+
+  try:
+    new_player = Player(email=data.get('email'), 
+                        first_name=data.get('first_name'), 
+                        last_name=data.get('last_name'), 
+                        division=data.get('division'),
+                        password=generate_password_hash(data.get('password'), method='sha256'))
+
+    db.session.add(new_player)
+    db.session.commit()
+    auth_token = new_player.encode_auth_token(new_player.id)
+
+    return jsonify({'success': True, 'token': auth_token.decode()})
+  except Exception as e:
+    return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
+
+
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+  data = request.get_json()
+
+  try: 
+    player = Player.query.filter(Player.email == data.get('email')).first()
+
+    # check if user actually exists
+    # take the user supplied password, hash it, and compare it to the hashed password in database
+    if not player or not check_password_hash(player.password, data.get('password')): 
+        return jsonify({'success': False, 'message': 'Email/password is not correct'})
+
+    auth_token = player.encode_auth_token(player.id)
+
+    return jsonify({'success': True, 'token': auth_token.decode()})
+  except Exception as e:
+    return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
+
+
+# Query information about the logged in player
+@app.route('/auth/user_status')
+@authorize
+def user_status(decoded_token):
+  player = Player.query.filter(Player.id == decoded_token).first()
+
+  response = {
+      'success': True,
+      'data': {
+          'player_id': player.id,
+          'first_name': player.first_name,
+          'last_name': player.last_name,
+          'email': player.email,
+          'admin': player.admin,
+          'subscribed': player.subscribed,
+          'division': player.division
+      }
+  }
+
+  return jsonify(response)
+
+
+@app.route('/auth/logout', methods=['GET', 'POST'])
+@authorize
+def logout(token):
+  denylist_token = TokenDenylist(token=token)
+  try:
+    db.session.add(denylist_token)
+    db.session.commit()
+
+    return jsonify({'success': True})
+  except Exception as e:
+    return jsonify({'success': False, 'message': e})
