@@ -1,5 +1,5 @@
 from flask import jsonify, render_template, request, flash, redirect, url_for, abort
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from sqlalchemy import case, and_
 from sqlalchemy.orm import joinedload
