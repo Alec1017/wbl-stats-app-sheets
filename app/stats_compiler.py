@@ -3,17 +3,10 @@ from sqlalchemy.orm import joinedload
 from flask import current_app
 
 from app import sheet_api
-from app.email import send_email
+from app.email import send_all_emails
 from app.models import Game, Player
 from app.slack import send_message
 from app.stats_helpers import calcHits, calcAtBats, calcOBP, calcAVG, calcSLG, calcOPS, calcERA, calcInningsPitched
-
-  
-def send_emails():
-  players = Player.query.filter(Player.subscribed == True, Player.first_name == 'Alec').all()
-
-  for player in players:
-    send_email(player.first_name, '2020 WBL Stats', player.email)
 
 
 def build_game_log():
@@ -231,7 +224,8 @@ def update_all_sheets():
       send_message(message=message)
       return {'success': False, 'completed': False}
     else:
-      send_emails()
+      players = Player.query.filter(Player.subscribed == True).all()
+      send_all_emails(players)
 
       message = "Google Sheet was successfully updated!"
       send_message(message=message)

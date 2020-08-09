@@ -33,3 +33,8 @@ Rand
 """.format(name, current_app.config['SPREADSHEET_ID'], datetime.datetime.today().strftime('%A'))
 
   Thread(target=send_async_email, args=(current_app._get_current_object(), recipient, subject, body)).start()
+
+
+def send_all_emails(players):
+  for player in players:
+    send_email(player.first_name, '2020 WBL Stats', player.email)
