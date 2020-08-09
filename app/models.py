@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 import jwt
+from flask import current_app
 
-from app import app, db
+from app import db
 
 
 class Player(db.Model):
@@ -28,7 +29,7 @@ class Player(db.Model):
         }
         return jwt.encode(
             payload,
-            app.config['SECRET_KEY'],
+            current_app.config['SECRET_KEY'],
             algorithm='HS256'
         )
     except Exception as e:
@@ -37,7 +38,7 @@ class Player(db.Model):
   @staticmethod
   def decode_auth_token(auth_token):
     try:
-        payload = jwt.decode(auth_token, app.config['SECRET_KEY'])
+        payload = jwt.decode(auth_token, current_app.config['SECRET_KEY'])
 
         if TokenDenylist.check_denylist(auth_token):
             return 'Token blacklisted. Please log in again.'

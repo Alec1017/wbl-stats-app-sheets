@@ -1,47 +1,30 @@
-from __future__ import print_function, division
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-import pickle
-import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 
 from config import Config
+from app.google_sheets import authenticate_sheet
+
+db = SQLAlchemy()
+migrate = Migrate()
+sheet_api = authenticate_sheet()
 
 
-def authenticate_sheet():
-    creds = None
-    # The file token.pickle stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'sheets-credentials.json', scopes)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
+def create_app(config_class=Config):
+  app = Flask(__name__)
+  app.config.from_object(Config)
+ 
+  db.init_app(app)
+  migrate.init_app(app, db)
 
-    service = build('sheets', 'v4', credentials=creds)
+  from app.api import api
+  app.register_blueprint(api, url_prefix='/api')
 
-    # Call the Sheets API
-    return service.spreadsheets()
+  from app.auth import auth
+  app.register_blueprint(auth, url_prefix='/auth')
 
+  from app.portal import portal
 
-app = Flask(__name__)
-app.config.from_object(Config)
+  app.register_blueprint(portal)
 
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-sheet = authenticate_sheet()
-
-from app import routes
+  return app
