@@ -3,8 +3,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
 from app.auth import auth
-from app.models import Player, TokenDenylist
-from app.utils import authorize
+from app.models import Player
+from app.utils import authorize_id
 
 
 # Register a new user
@@ -55,9 +55,9 @@ def login():
 
 # Query information about the logged in player
 @auth.route('/user_status')
-@authorize
-def user_status(decoded_token):
-  player = Player.query.filter(Player.id == decoded_token).first()
+@authorize_id
+def user_status(uid):
+  player = Player.query.filter(Player.id == uid).first()
 
   return jsonify({
     'success': True,
@@ -71,17 +71,3 @@ def user_status(decoded_token):
       'division': player.division
     }
   })
-
-
-# Logout a user and deny the token from being used again
-@auth.route('/logout', methods=['GET', 'POST'])
-@authorize
-def logout(token):
-  denylist_token = TokenDenylist(token=token)
-  try:
-    db.session.add(denylist_token)
-    db.session.commit()
-
-    return jsonify({'success': True})
-  except Exception as e:
-    return jsonify({'success': False, 'message': e})
