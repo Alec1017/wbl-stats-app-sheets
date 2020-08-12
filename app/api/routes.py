@@ -21,7 +21,8 @@ def status():
 
 
 # Update the stat sheet
-@api.route('/update_sheet/<uid>')
+@api.route('/update_sheet')
+@authorize_id
 def update_sheet(uid):
   admin_user = Player.query.filter(Player.admin == True, Player.id == uid).first()
 
@@ -64,7 +65,7 @@ def standings():
       standings_dict[division].append([full_name, int(wins), int(losses)])
     else:
       standings_dict[division] = [[full_name, int(wins), int(losses)]]
-  print(standings_dict)
+  
   return jsonify(standings_dict)
 
 
@@ -72,8 +73,8 @@ def standings():
 @api.route('/opponents')
 @authorize_id
 def opponents(uid):
-  opponents = db.session.query(Player.first_name, Player.last_name).filter(Player.id != uid).all()
-  full_name_opponents = ['{} {}'.format(first_name, last_name) for first_name, last_name in opponents]
+  opponents = db.session.query(Player.id, Player.first_name, Player.last_name).filter(Player.id != uid).all()
+  full_name_opponents = [(player_id, '{} {}'.format(first_name, last_name)) for player_id, first_name, last_name in opponents]
 
   return jsonify(full_name_opponents)
 
@@ -182,13 +183,14 @@ def earned_run_average(uid):
 
 # Query leaderboards
 @api.route('/analytics/leaderboard/<stat>')
+@authorize
 def leaderboard(stat):
   singular_stats = {
     'home_runs': Game.home_runs, 
     'stolen_bases': Game.stolen_bases, 
     'error': Game.error,
     'runs_batted_in': Game.runs_batted_in,
-    'wins': Game.wins,
+    'wins': Game.win,
     'pitching_strikeouts': Game.pitching_strikeouts
   }
 
@@ -215,3 +217,38 @@ def leaderboard(stat):
     })
 
   return jsonify(results)
+
+
+# Add a game to the database
+@api.route('/add_game', methods=['POST'])
+@authorize
+def add_game():
+  try:
+    data = request.get_json()
+
+    data['player'] = Player.query.get(data.get('player_id'))
+    data['opponent'] = Player.query.get(data.get('opponent_id'))
+
+    game = Game(**data)
+
+    db.session.add(game)
+    db.session.commit()
+
+    return jsonify({'success': True})
+  except Exception as e:
+    return jsonify({'success': False, 'message': 'Something went wrong. Try submitting again.'})
+
+
+# Toggle email subscription
+@api.route('/toggle_email')
+@authorize_id
+def toggle_email(uid):
+  try:
+    player = Player.query.get(uid)
+
+    player.subscribed = not player.subscribed
+    db.session.commit()
+
+    return jsonify({'success': True, 'data': player.subscribed})
+  except Exception as e:
+    return jsonify({'success': False})
