@@ -20,7 +20,7 @@ class Player(db.Model):
   # Relationships
   games = db.relationship('Game', back_populates='player', foreign_keys='Game.player_id')
 
-  def encode_auth_token(self, player_id):
+  def encode_auth_token(self, player_id, expiration=None):
     try:
       # If we wanted the token to expire after 5 seconds
       # 'exp': datetime.utcnow() + timedelta(days=0, seconds=5)
@@ -28,6 +28,10 @@ class Player(db.Model):
           'iat': datetime.utcnow(),
           'sub': player_id
       }
+      
+      if expiration:
+        payload['exp'] = datetime.utcnow() + timedelta(days=0, seconds=expiration)
+
       return jwt.encode(
           payload,
           current_app.config['SECRET_KEY'],

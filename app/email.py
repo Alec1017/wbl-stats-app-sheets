@@ -38,3 +38,20 @@ Rand
 def send_all_emails(players):
   for player in players:
     send_email(player.first_name, '2020 WBL Stats', player.email)
+
+
+def send_password_reset_email(name, subject, recipient, token):
+  body = """
+Hey {},
+
+Looks like you forgot your password! Don't fret, I've got you covered. Click this link:
+
+https://data.quietbroom.com/password_reset/{}
+
+Hope you enjoy the rest of your {}.
+
+Sincerely,
+Rand
+""".format(name, token, datetime.datetime.today().strftime('%A'))
+
+  Thread(target=send_async_email, args=(current_app._get_current_object(), recipient, subject, body)).start()

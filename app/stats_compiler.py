@@ -195,7 +195,7 @@ def clear_all_sheets():
   with current_app._get_current_object().app_context():
     try:
       sheet_api.values().batchClear(
-        spreadsheetId=current_app.config['TEST_SPREADSHEET_ID'], 
+        spreadsheetId=current_app.config['SPREADSHEET_ID'], 
         body={'ranges': [current_app.config['RANGE_NAME'], current_app.config['RANGE_NAME_SHEET_TWO'], current_app.config['RANGE_NAME_SHEET_THREE']]}
       ).execute()
     except Exception as e:
@@ -205,7 +205,7 @@ def clear_all_sheets():
 
 def update_all_sheets():
   with current_app._get_current_object().app_context():
-    sheet_id = current_app.config['TEST_SPREADSHEET_ID']
+    sheet_id = current_app.config['SPREADSHEET_ID']
 
     try:
       result = sheet_api.values().update(

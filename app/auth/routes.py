@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
 from app.auth import auth
+from app.email import send_password_reset_email
 from app.models import Player
 from app.utils import authorize_id
 
@@ -71,3 +72,27 @@ def user_status(uid):
       'division': player.division
     }
   })
+
+
+# Request a password reset link
+@auth.route('/password_reset_request', methods=['POST'])
+def password_reset_request():
+  data = request.get_json()
+
+  try: 
+    player = Player.query.filter(Player.email == data.get('email')).first()
+
+    # check if user actually exists
+    # If not, don't reveal that an email wasn't sent
+    if not player: 
+        return jsonify({'success': True})
+
+    # Generate token that is valid for 10 minutes
+    auth_token = player.encode_auth_token(player.id, expiration=600)
+
+    # Send password reset email
+    send_password_reset_email(player.first_name, 'WBL Password Reset', player.email, auth_token.decode())
+
+    return jsonify({'success': True})
+  except Exception as e:
+    return jsonify({'success': False})

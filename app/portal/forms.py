@@ -1,4 +1,9 @@
-from wtforms import Form, BooleanField, IntegerField, StringField
+from wtforms import Form, BooleanField, IntegerField, PasswordField,StringField
+
+
+class PasswordResetForm(Form):
+  new_password = PasswordField('New password')
+
 
 class GameForm(Form):
   player = StringField('Player')

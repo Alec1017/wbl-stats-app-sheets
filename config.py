@@ -16,7 +16,6 @@ class Config:
 
   # The ID and range of a sample spreadsheet.
   SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID')
-  TEST_SPREADSHEET_ID = os.environ.get('TEST_SPREADSHEET_ID')
   RANGE_NAME = 'Stats'
   RANGE_NAME_SHEET_TWO = 'Standings'
   RANGE_NAME_SHEET_THREE = 'Game Log'

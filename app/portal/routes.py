@@ -1,8 +1,9 @@
-from flask import flash, render_template, redirect, request, url_for
+from flask import flash, render_template, redirect, request, url_for, abort
+from werkzeug.security import generate_password_hash
 
 from app import db
 from app.portal import portal
-from app.portal.forms import GameForm
+from app.portal.forms import GameForm, PasswordResetForm
 from app.models import Game, Player
 
 
@@ -128,3 +129,28 @@ def game(game_id):
     return render_template('game.html', game=game, form=form)
   else: 
     return "no game data"
+
+# Reset a password
+@portal.route('/password_reset/<token>', methods=['GET', 'POST'])
+def password_reset(token):
+  form=PasswordResetForm(request.form)
+
+  try:
+    decoded_token = Player.decode_auth_token(token)
+
+    # Make sure we get an ID and not an error message
+    if isinstance(decoded_token, str):
+      abort(401)
+
+    player = Player.query.get(decoded_token)
+
+    if request.method == 'POST' and form.validate():
+      player.password = generate_password_hash(request.form['new_password'], method='sha256')
+
+      db.session.commit()
+      return render_template('password_reset_success.html')
+
+    return render_template('password_reset.html', form=form)
+
+  except Exception as e:
+    abort(401)
