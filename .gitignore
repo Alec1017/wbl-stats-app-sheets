@@ -1,4 +1,5 @@
 .env
+*.lock
 
 sheets-credentials.json
 *.pickle
@@ -6,6 +7,6 @@ sheets-credentials.json
 /venv
 .venv
 
-*.pyc
-__pycache__
+**/*.pyc
+**/__pycache__
 .vscode
