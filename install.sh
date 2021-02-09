@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 echo "Creating virtual environment..."
-virtualenv venv
+pipenv shell
+
+sleep 2
 
 echo "Installing dependencies..."
 pipenv install

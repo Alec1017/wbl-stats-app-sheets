@@ -16,7 +16,7 @@ class Config:
 
   # The ID and range of a sample spreadsheet.
   SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID')
-  RANGE_NAME = 'Stats'
+  RANGE_NAME_SHEET_ONE = 'Stats'
   RANGE_NAME_SHEET_TWO = 'Standings'
   RANGE_NAME_SHEET_THREE = 'Game Log'
   MAILGUN_API_TOKEN = os.getenv('MAILGUN_API_TOKEN')

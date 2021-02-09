@@ -3,9 +3,8 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 from config import Config
-from stats_compiler import StatsCompiler
-from slack import SlackBot
-from email import Emailer
+from app.slack import SlackBot
+from app.email import Emailer
 from app.google_sheets import authenticate_sheet
 
 db = SQLAlchemy()
@@ -15,6 +14,7 @@ sheet_api = authenticate_sheet()
 slack_bot = SlackBot()
 emailer = Emailer()
 
+from app.stats_compiler import StatsCompiler
 compiler = StatsCompiler(sheet_api)
 
 

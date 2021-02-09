@@ -7,6 +7,9 @@ from google.auth.transport.requests import Request
 
 # Authenticates the Google Sheets Api
 def authenticate_sheet():
+    # If modifying these scopes, delete the file token.pickle.
+    scopes = ['https://www.googleapis.com/auth/spreadsheets']
+
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first

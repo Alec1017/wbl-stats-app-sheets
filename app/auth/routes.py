@@ -1,9 +1,8 @@
 from flask import render_template, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app import db
+from app import db, emailer
 from app.auth import auth
-from app.email import send_password_reset_email
 from app.models import Player
 from app.utils import authorize_id
 
@@ -91,7 +90,7 @@ def password_reset_request():
     auth_token = player.encode_auth_token(player.id, expiration=600)
 
     # Send password reset email
-    send_password_reset_email(player.first_name, 'WBL Password Reset', player.email, auth_token.decode())
+    emailer.send_password_reset_email(player.first_name, 'WBL Password Reset', player.email, auth_token.decode())
 
     return jsonify({'success': True})
   except Exception as e:

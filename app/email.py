@@ -1,7 +1,6 @@
 import requests
 import datetime
 from threading import Thread
-from flask import current_app
 
 
 class Emailer:
