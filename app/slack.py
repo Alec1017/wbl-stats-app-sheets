@@ -1,11 +1,16 @@
 import slack
-from flask import current_app
 
 
-def send_message(channel='#scripting', message=''):
-  with current_app._get_current_object().app_context():
-    connection = slack.WebClient(token=current_app.config['SLACK_TOKEN'])
+class SlackBot:
+  def __init__(self):
+    self.token = None
 
-    return connection.chat_postMessage(
-      channel=channel,
-      text=message)
+
+  def init_app(self, app):
+    self.token = app.config['SLACK_TOKEN']
+
+
+  def send_message(self, channel='#scripting', message=''):
+    connection = slack.WebClient(token=self.token)
+
+    return connection.chat_postMessage(channel=channel, text=message)

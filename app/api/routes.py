@@ -6,11 +6,10 @@ from sqlalchemy.sql import func
 
 import operator
 
-from app import db
+from app import db, compiler
 from app.api import api
 from app.models import Player, Game
 from app.stats_helpers import calcHits, calcAtBats, calcAVG, calcERA, calcInningsPitched
-from app.stats_compiler import clear_all_sheets, update_all_sheets
 from app.utils import authorize, authorize_id
 
 
@@ -29,9 +28,9 @@ def update_sheet(uid):
   if not admin_user:
     return jsonify({'success': False})
 
-  clear_all_sheets()
+  compiler.clear_all_sheets()
 
-  return jsonify(update_all_sheets())
+  return jsonify(compiler.update_all_sheets())
 
 
 # Query the current standings

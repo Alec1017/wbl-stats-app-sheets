@@ -4,54 +4,64 @@ from threading import Thread
 from flask import current_app
 
 
-def send_async_email(app, recipient, subject, body):
-  with app.app_context():
+class Emailer:
+  def __init__(self):
+    self.spreadsheet_id = None
+    self.mailgun_api_token = None
+
+
+  def init_app(self, app):
+    self.spreadsheet_id = app.config['SPREADSHEET_ID']
+    self.mailgun_api_token = app.config['MAILGUN_API_TOKEN']
+
+
+  def send_async_email(self, recipient, subject, body):
     requests.post(
-        "https://api.mailgun.net/v3/quietbroom.com/messages",
-        auth=("api", current_app.config['MAILGUN_API_TOKEN']),
-        data={
-          "from": "Rand <wblStatsRunnerRandy@quietbroom.com>",
-          "to": [recipient],
-          "subject": subject,
-          "text": body
-        }
-      )
+      "https://api.mailgun.net/v3/quietbroom.com/messages",
+      auth=("api", self.mailgun_api_token),
+      data={
+        "from": "Rand <wblStatsRunnerRandy@quietbroom.com>",
+        "to": [recipient],
+        "subject": subject,
+        "text": body
+      }
+    )
 
 
-def send_email(name, subject, recipient):
-  body = """
-Hey {}, what's going on?
+  def send_email(self, name, subject, recipient):
+    body = """
+  Hey {}, what's going on?
 
-Here's your updated stats, fresh off the press.
+  Here's your updated stats, fresh off the press.
 
-https://docs.google.com/spreadsheets/d/{}/
+  https://docs.google.com/spreadsheets/d/{}/
 
-Hope you enjoy the rest of your {}.
+  Hope you enjoy the rest of your {}.
 
-Sincerely,
-Rand
-""".format(name, current_app.config['SPREADSHEET_ID'], datetime.datetime.today().strftime('%A'))
+  Sincerely,
+  Rand
+  """.format(name, self.spreadsheet_id, datetime.datetime.today().strftime('%A'))
 
-  Thread(target=send_async_email, args=(current_app._get_current_object(), recipient, subject, body)).start()
-
-
-def send_all_emails(players):
-  for player in players:
-    send_email(player.first_name, '2020 WBL Stats', player.email)
+    Thread(target=self.send_async_email, args=(recipient, subject, body)).start()
 
 
-def send_password_reset_email(name, subject, recipient, token):
-  body = """
-Hey {},
+  def send_all_emails(self, players):
+    for player in players:
+      self.send_email(player.first_name, '2020 WBL Stats', player.email)
 
-Looks like you forgot your password! Don't fret, I've got you covered. Click this link:
 
-https://data.quietbroom.com/password_reset/{}
+  def send_password_reset_email(self, name, subject, recipient, token):
+    body = """
+  Hey {},
 
-Hope you enjoy the rest of your {}.
+  Looks like you forgot your password! Don't fret, I've got you covered. Click this link:
 
-Sincerely,
-Rand
-""".format(name, token, datetime.datetime.today().strftime('%A'))
+  https://data.quietbroom.com/password_reset/{}
 
-  Thread(target=send_async_email, args=(current_app._get_current_object(), recipient, subject, body)).start()
+  Hope you enjoy the rest of your {}.
+
+  Sincerely,
+  Rand
+  """.format(name, token, datetime.datetime.today().strftime('%A'))
+
+    Thread(target=self.send_async_email, args=(recipient, subject, body)).start()
