@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from app import create_app
+from config import Production
 
 # Create the application instance
-app = create_app()
+app = create_app(Production)

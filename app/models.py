@@ -8,6 +8,9 @@ from app import db
 class Player(db.Model):
   __tablename__ = 'player'
 
+  def __repr__(self):
+    return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
+
   id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
   first_name = db.Column(db.String(45), index=True)
   last_name = db.Column(db.String(45), index=True)
@@ -43,7 +46,7 @@ class Player(db.Model):
   @staticmethod
   def decode_auth_token(auth_token):
     try:
-      payload = jwt.decode(auth_token, current_app.config['SECRET_KEY'])
+      payload = jwt.decode(auth_token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
 
       return payload['sub']
     except jwt.ExpiredSignatureError:
@@ -51,12 +54,12 @@ class Player(db.Model):
     except jwt.InvalidTokenError:
       return 'Invalid token. Please login again.'
 
-  def __repr__(self):
-    return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
-
 
 class Game(db.Model):
   __tablename__ = 'game'
+
+  def __repr__(self):
+    return '<Game {}>'.format(self.id)
 
   id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
   player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
@@ -95,6 +98,3 @@ class Game(db.Model):
   # Relationships
   player = db.relationship('Player', foreign_keys=[player_id])
   opponent = db.relationship('Player', foreign_keys=[opponent_id])
-
-  def __repr__(self):
-    return '<Game {}>'.format(self.id)

@@ -2,7 +2,7 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-from config import Config
+from config import Production
 from app.slack import SlackBot
 from app.email import Emailer
 from app.google_sheets import authenticate_sheet
@@ -18,9 +18,17 @@ from app.stats_compiler import StatsCompiler
 compiler = StatsCompiler(sheet_api)
 
 
-def create_app(config_class=Config):
+def create_app(config_class):
+  """ Application factory
+
+    Args:
+        config_class: loads the app configuration
+    Returns:
+        The Flask application object
+  """
+
   app = Flask(__name__)
-  app.config.from_object(Config)
+  app.config.from_object(config_class)
  
   db.init_app(app)
   migrate.init_app(app, db)
