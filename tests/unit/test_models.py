@@ -1,17 +1,10 @@
 import pytest
 from faker import Faker
 
-from app import create_app
-from app.models import Player
-from config import Test
+from app.models import Game, Player
 
 
 class TestPlayer:
-
-    @pytest.fixture
-    def test_app(self, scope='module'):
-        return create_app(Test)
-
 
     @pytest.fixture
     def player(self, scope='module'):
@@ -56,3 +49,25 @@ class TestPlayer:
             assert auth_token != player.id
             assert Player.decode_auth_token(auth_token) == player.id
 
+
+class TestGame:
+
+    @pytest.fixture
+    def game(self, scope='module'):
+        """
+        Generates a mock Game
+        """
+
+        game = Game(id=1, player_id=1, opponent_id=2)
+
+        return game
+
+
+    def test_new_game(self, game):
+        """
+        Tests a game is created correctly
+        """
+
+        assert game.id == 1
+        assert game.player_id == 1
+        assert game.opponent_id == 2

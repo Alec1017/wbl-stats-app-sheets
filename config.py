@@ -38,3 +38,10 @@ class Test:
   RANGE_NAME_SHEET_THREE = 'Game Log'
   MAILGUN_API_TOKEN = os.getenv('MAILGUN_API_TOKEN')
   SLACK_TOKEN = os.getenv('SLACK_API_TOKEN')
+ 
+  # Enable the TESTING flag to disable the error catching during request handling
+  # so that you get better error reports when performing test requests against the application.
+  TESTING = True
+ 
+  # Disable CSRF tokens in the Forms (only valid for testing purposes!)
+  WTF_CSRF_ENABLED = False
