@@ -19,6 +19,8 @@ python-dotenv = "*"
 slackclient = "*"
 requests = "*"
 pyjwt = "*"
+pytest = "*"
+faker = "*"
 
 [requires]
 python_version = "3.8"
