@@ -50,6 +50,14 @@ class TestPlayer:
             assert Player.decode_auth_token(auth_token) == player.id
 
 
+    def test_player_repr(self, player):
+        """
+        Tests that a player repr function prints out in a correct format
+        """
+
+        assert repr(player) == '<Player 1 first name last name>'
+
+
 class TestGame:
 
     @pytest.fixture
@@ -71,3 +79,11 @@ class TestGame:
         assert game.id == 1
         assert game.player_id == 1
         assert game.opponent_id == 2
+
+    
+    def test_game_repr(self, game):
+        """
+        Tests that a game repr function prints out in a correct format
+        """
+
+        assert repr(game) == '<Game 1>'

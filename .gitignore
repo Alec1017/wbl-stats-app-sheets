@@ -12,3 +12,7 @@ sheets-credentials.json
 .vscode
 
 .pytest_cache
+.coverage
+/htmlcov
+
+app/static/

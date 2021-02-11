@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_scss import Scss
 
 from config import Production
 from app.slack import SlackBot
@@ -44,5 +45,7 @@ def create_app(config_class):
 
   from app.portal import portal
   app.register_blueprint(portal)
+
+  Scss(app, static_dir='app/static', asset_dir='app/assets')
 
   return app

@@ -21,6 +21,8 @@ requests = "*"
 pyjwt = "*"
 pytest = "*"
 faker = "*"
+pytest-cov = "*"
+flask-scss = "*"
 
 [requires]
 python_version = "3.8"
