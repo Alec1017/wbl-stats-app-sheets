@@ -16,3 +16,4 @@ sheets-credentials.json
 /htmlcov
 
 app/static/css
+app/static/.webassets-cache
