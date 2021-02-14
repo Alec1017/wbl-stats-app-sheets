@@ -1,12 +1,15 @@
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-import sass
+from flask_assets import Environment, Bundle
+# from sassutils.wsgi import SassMiddleware
+# import sass
 
 from config import Production
 from app.slack import SlackBot
 from app.email import Emailer
 from app.google_sheets import authenticate_sheet
+from app.assets import bundles
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -37,6 +40,9 @@ def create_app(config_class):
   emailer.init_app(app)
   compiler.init_app(app, slack_bot, emailer)
 
+  assets = Environment(app)
+  assets.register(bundles)
+
   from app.api import api
   app.register_blueprint(api, url_prefix='/api')
 
@@ -46,6 +52,11 @@ def create_app(config_class):
   from app.portal import portal
   app.register_blueprint(portal)
 
-  sass.compile(dirname=('app/static', 'app/assets'))
+  # if app.config['TESTING']:
+  #   app.wsgi_app = SassMiddleware(app.wsgi_app, {
+  #     'app': ('assets', 'static', '/static')
+  #   })
+  # else:
+  #   sass.compile(dirname=('app/static', 'app/assets'))
 
   return app

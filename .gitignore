@@ -15,4 +15,4 @@ sheets-credentials.json
 .coverage
 /htmlcov
 
-app/static/
+app/static/css
