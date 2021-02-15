@@ -2,14 +2,13 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_assets import Environment, Bundle
-# from sassutils.wsgi import SassMiddleware
-# import sass
 
 from config import Production
+from assets import bundles
+
 from app.slack import SlackBot
 from app.email import Emailer
 from app.google_sheets import authenticate_sheet
-from app.assets import bundles
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -31,18 +30,22 @@ def create_app(config_class):
         The Flask application object
   """
 
+  # Create the app instance
   app = Flask(__name__)
   app.config.from_object(config_class)
  
+  # initialize app and its components
   db.init_app(app)
   migrate.init_app(app, db)
   slack_bot.init_app(app)
   emailer.init_app(app)
   compiler.init_app(app, slack_bot, emailer)
 
+  # initialize stylesheet assets
   assets = Environment(app)
   assets.register(bundles)
 
+  # register blueprints
   from app.api import api
   app.register_blueprint(api, url_prefix='/api')
 
@@ -51,12 +54,5 @@ def create_app(config_class):
 
   from app.portal import portal
   app.register_blueprint(portal)
-
-  # if app.config['TESTING']:
-  #   app.wsgi_app = SassMiddleware(app.wsgi_app, {
-  #     'app': ('assets', 'static', '/static')
-  #   })
-  # else:
-  #   sass.compile(dirname=('app/static', 'app/assets'))
 
   return app
