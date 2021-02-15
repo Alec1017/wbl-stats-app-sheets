@@ -66,9 +66,8 @@ class TestGame:
         Generates a mock Game
         """
 
-        game = Game(id=1, player_id=1, opponent_id=2)
+        return Game(id=1, player_id=1, opponent_id=2)
 
-        return game
 
 
     def test_new_game(self, game):

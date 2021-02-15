@@ -1,0 +1,15 @@
+@mixin font($font: roboto, $weight: regular, $size: 1.2rem) {
+    @if map-has-key($fonts, $font) {
+      font-family: map-get($fonts, $font);
+    } @else {
+      @error "Unknown `#{$font}` in $fonts.";
+    }
+  
+    @if map-has-key($font-weights, $weight) {
+      font-weight: map-get($font-weights, $weight);
+    } @else {
+      @error "Unknown `#{$weight}` in $font-weights.";
+    }
+  
+    font-size: $size;
+  }

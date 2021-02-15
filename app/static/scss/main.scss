@@ -1,1 +1,10 @@
-@import "pages";
+@import "reset";
+@import "fonts";
+@import "variables";
+@import "functions";
+@import "mixins";
+
+// @import "pages";
+body {
+    @include font($weight: 'bold', $size: 2rem);
+}
