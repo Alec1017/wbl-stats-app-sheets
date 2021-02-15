@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy.orm import joinedload
 
 from app.models import Game, Player
-from app.stats_helpers import calcHits, calcAtBats, calcOBP, calcAVG, calcSLG, calcOPS, calcERA, calcInningsPitched
+import app.stats_helpers as sh
 
 
 class StatsCompiler:
@@ -158,14 +158,14 @@ class StatsCompiler:
         errors += stats.error
       
       # Calculate stats
-      hits = calcHits(singles, doubles, triples, home_runs)
-      at_bats = calcAtBats(hits, outs, strikeouts)
-      innings_pitched = calcInningsPitched(innings_pitched)
-      on_base_percentage = calcOBP(hits, at_bats, base_on_balls, hit_by_pitch)
-      average = calcAVG(hits, at_bats)
-      slugging = calcSLG(singles, doubles, triples, home_runs, at_bats)
-      on_base_plus_slugging = calcOPS(on_base_percentage, slugging)
-      earned_run_average = calcERA(earned_runs, innings_pitched)
+      hits = sh.calc_hits(singles, doubles, triples, home_runs)
+      at_bats = sh.calc_at_bats(hits, outs, strikeouts)
+      innings_pitched = sh.calc_innings_pitched(innings_pitched)
+      on_base_percentage = sh.calc_obp(hits, at_bats, base_on_balls, hit_by_pitch)
+      average = sh.calc_avg(hits, at_bats)
+      slugging = sh.calc_slg(singles, doubles, triples, home_runs, at_bats)
+      on_base_plus_slugging = sh.calc_ops(on_base_percentage, slugging)
+      earned_run_average = sh.calc_era(earned_runs, innings_pitched)
 
       stats_sheet_row += [
         player_name,

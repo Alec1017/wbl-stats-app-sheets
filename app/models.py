@@ -25,8 +25,6 @@ class Player(db.Model):
 
   def encode_auth_token(self, player_id, expiration=None):
     try:
-      # If we wanted the token to expire after 5 seconds
-      # 'exp': datetime.utcnow() + timedelta(days=0, seconds=5)
       payload = {
           'iat': datetime.utcnow(),
           'sub': player_id
@@ -46,7 +44,11 @@ class Player(db.Model):
   @staticmethod
   def decode_auth_token(auth_token):
     try:
-      payload = jwt.decode(auth_token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+      payload = jwt.decode(
+        auth_token, 
+        current_app.config['SECRET_KEY'], 
+        algorithms=["HS256"]
+      )
 
       return payload['sub']
     except jwt.ExpiredSignatureError:

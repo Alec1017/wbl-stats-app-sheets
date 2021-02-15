@@ -6,10 +6,10 @@ from sqlalchemy.sql import func
 
 import operator
 
+import app.stats_helpers as sh
 from app import db, compiler
 from app.api import api
 from app.models import Player, Game
-from app.stats_helpers import calcHits, calcAtBats, calcAVG, calcERA, calcInningsPitched
 from app.utils import authorize, authorize_id
 
 
@@ -86,14 +86,14 @@ def batting_average(uid):
 
   def get_average(stats):
     singles, doubles, triples, home_runs, outs, strikeouts = stats
-    hits = calcHits(singles, doubles, triples, home_runs)
-    at_bats = calcAtBats(hits, outs, strikeouts)
+    hits = sh.calc_hits(singles, doubles, triples, home_runs)
+    at_bats = sh.calc_at_bats(hits, outs, strikeouts)
     
     # safeguard in case anything odd is happening
     if at_bats == 0:
       return 0
     
-    return calcAVG(hits, at_bats)
+    return sh.calc_avg(hits, at_bats)
 
   base_query = db.session.query(func.coalesce(func.sum(Game.singles), 0), 
                             func.coalesce(func.sum(Game.doubles), 0), 
@@ -140,13 +140,13 @@ def earned_run_average(uid):
 
   def get_earned_run_average(stats):
     earned_runs, outs_pitched = stats
-    innings_pitched = calcInningsPitched(int(outs_pitched))
+    innings_pitched = sh.calc_innings_pitched(int(outs_pitched))
     
     # safeguard in case anything odd is happening
     if innings_pitched == 0:
       return 0
     
-    return calcERA(int(earned_runs), innings_pitched)
+    return sh.calc_era(int(earned_runs), innings_pitched)
 
   base_query = db.session.query(func.coalesce(func.sum(Game.earned_runs), 0), 
                             func.coalesce(func.sum(Game.innings_pitched), 0)) \
