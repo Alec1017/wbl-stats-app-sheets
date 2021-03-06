@@ -7,4 +7,6 @@
             <li class="list-group-item"><a href="game/{{game.id}}">Date: {{ game.date }}&nbsp;&nbsp;&nbsp;&nbsp;Opponent: {{ game.selectedOpponent }}</a></li>
         {% endfor %}
     </ul>
+
+    <a type="button" class="btn btn-primary my-3" href="add_game/{{player.uid}}">Add game</a>
 {% endblock %}

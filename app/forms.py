@@ -27,7 +27,7 @@ class GameForm(Form):
 
   isCaptain = BooleanField('Is captain?')
   isGameWon = BooleanField('Did you win the game?')
-  selectedOpponent = StringField('Selected opponent')
-  winnerScore = IntegerField('Winning team score')
-  loserScore = IntegerField('Losing team score')
-  totalInnings = IntegerField('Total innings played')
+  selectedOpponent = StringField('Selected opponent',  render_kw={"placeholder": "Dont put anything here if you arent a captain"})
+  winnerScore = IntegerField('Winning team score', render_kw={"placeholder": "Dont put anything here if you arent a captain"})
+  loserScore = IntegerField('Losing team score', render_kw={"placeholder": "Dont put anything here if you arent a captain"})
+  totalInnings = IntegerField('Total innings played', render_kw={"placeholder": "Dont put anything here if you arent a captain"})

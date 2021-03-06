@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Add a game for {{player.firstName}} {{player.lastName}}</h1>
+    {% from "includes/_formhelpers.html" import render_field %}
+
+    <form method="POST" action="">
+      <div class="form-group">
+        <div class="col-4">
+            <div>Date</div>
+            <input class="form-control" type="date" id="date" name="date" style="width: 100%">
+        </div>
+      </div>
+
+      {% for field in form %}
+        <div class="form-group">
+          {% if field.type == "BooleanField" %}
+            <div class="col-3" style="display: flex; justify-content: space-between;">
+              {{ render_field(field, class_="form-control") }}
+            </div>
+          {% else %}
+            <div class="col-4">
+              {{ render_field(field, class_="form-control") }}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+        
+      <input class="btn btn-primary" type="submit" value="Submit">
+    </form>
+{% endblock %}
