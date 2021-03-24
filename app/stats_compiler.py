@@ -15,6 +15,7 @@ class StatsCompiler:
     self.range_name_sheet_one = None
     self.range_name_sheet_two = None
     self.range_name_sheet_three = None
+    self.mute_email_notifications = None
 
   def init_app(self, app, slack_bot, emailer):
     self.slack_bot = slack_bot
@@ -23,6 +24,7 @@ class StatsCompiler:
     self.range_name_sheet_one = app.config['RANGE_NAME_SHEET_ONE']
     self.range_name_sheet_two = app.config['RANGE_NAME_SHEET_TWO']
     self.range_name_sheet_three = app.config['RANGE_NAME_SHEET_THREE']
+    self.mute_email_notifications = app.config['MUTE_EMAIL_NOTIFICATIONS']
     
 
   def build_game_log(self):
@@ -236,9 +238,11 @@ class StatsCompiler:
       self.slack_bot.send_message(message=message)
       return {'success': False, 'completed': False}
     else:
-      players = Player.query.filter(Player.subscribed == True).all()
-      self.emailer.send_all_emails(players)
-
+      if not self.mute_email_notifications:
+        players = Player.query.filter(Player.subscribed == True).all()
+        self.emailer.send_all_emails(players)
+        
       message = "Google Sheet was successfully updated!"
       self.slack_bot.send_message(message=message)
+
       return {'success': True}

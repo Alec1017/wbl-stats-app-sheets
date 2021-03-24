@@ -2,6 +2,7 @@
 *.lock
 
 sheets-credentials.json
+firebase-credentials.json
 *.pickle
 
 /venv
@@ -14,6 +15,3 @@ sheets-credentials.json
 .pytest_cache
 .coverage
 /htmlcov
-
-app/static/css
-app/static/.webassets-cache

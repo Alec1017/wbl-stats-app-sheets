@@ -1,27 +1,26 @@
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_assets import Environment, Bundle
 
-from config import Production
-from assets import bundles
+from config import Development
 
 from app.slack import SlackBot
 from app.email import Emailer
 from app.google_sheets import authenticate_sheet
 
-db = SQLAlchemy()
+
+db      = SQLAlchemy()
 migrate = Migrate()
 
 sheet_api = authenticate_sheet()
 slack_bot = SlackBot()
-emailer = Emailer()
+emailer   = Emailer()
 
 from app.stats_compiler import StatsCompiler
 compiler = StatsCompiler(sheet_api)
 
 
-def create_app(config_class):
+def create_app(config_class=Development):
   """ Application factory
 
     Args:
@@ -41,9 +40,6 @@ def create_app(config_class):
   emailer.init_app(app)
   compiler.init_app(app, slack_bot, emailer)
 
-  # initialize stylesheet assets
-  assets = Environment(app)
-  assets.register(bundles)
 
   # register blueprints
   from app.api import api

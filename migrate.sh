@@ -3,12 +3,12 @@
 for arg in "$@"
 do
     case $arg in
-        --production)
-        mode=production
+        --mode)
+        mode=$2
         ;;
 
-        --development)
-        mode=development
+        --message)
+        message=$4
         ;;
     esac
 done
@@ -16,4 +16,5 @@ done
 export FLASK_APP=run.py
 export FLASK_ENV=$mode
 
-flask run
+flask db migrate -m "$message"
+flask db upgrade
