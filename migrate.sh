@@ -16,5 +16,11 @@ done
 export FLASK_APP=run.py
 export FLASK_ENV=$mode
 
-flask db migrate -m "$message"
-flask db upgrade
+if [[ $mode == "development" ]]
+then
+    flask db migrate -m "$message" --directory=test_migrations
+    flask db upgrade --directory=test_migrations
+else
+    flask db migrate -m "$message"
+    flask db upgrade
+fi
