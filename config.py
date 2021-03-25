@@ -20,11 +20,19 @@ class BaseConfig:
     MAILGUN_API_TOKEN = os.getenv('MAILGUN_API_TOKEN')
     SLACK_TOKEN = os.getenv('SLACK_API_TOKEN')
 
+    MYSQL_USERNAME = os.environ.get('MYSQL_USERNAME')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+    MYSQL_ENDPOINT = os.environ.get('MYSQL_ENDPOINT')
+
 
 class Production(BaseConfig):
+    MYSQL_DB = os.environ.get('MYSQL_DB')
+
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{}:{}@{}/{}'.format(
-      os.environ.get('MYSQL_USERNAME'), os.environ.get('MYSQL_PASSWORD'), 
-      os.environ.get('MYSQL_ENDPOINT'), os.environ.get('MYSQL_DB')
+        BaseConfig.MYSQL_USERNAME,
+        BaseConfig.MYSQL_PASSWORD, 
+        BaseConfig.MYSQL_ENDPOINT, 
+        MYSQL_DB
     )
 
     # The ID and range of a sample spreadsheet.
@@ -34,8 +42,14 @@ class Production(BaseConfig):
 
 
 class Development(BaseConfig):
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'test.db')
+    TEST_MYSQL_DB = os.environ.get('TEST_MYSQL_DB')
+
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{}:{}@{}/{}'.format(
+        BaseConfig.MYSQL_USERNAME,
+        BaseConfig.MYSQL_PASSWORD, 
+        BaseConfig.MYSQL_ENDPOINT, 
+        TEST_MYSQL_DB
+    )
 
     SPREADSHEET_ID = os.environ.get('TEST_SPREADSHEET_ID')
 

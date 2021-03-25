@@ -21,7 +21,7 @@ def sign_up():
     new_player = Player(email=data.get('email'), 
                         first_name=data.get('first_name'), 
                         last_name=data.get('last_name'), 
-                        division=data.get('division'),
+                        team=data.get('team'),
                         password=generate_password_hash(data.get('password'), method='sha256'))
 
     db.session.add(new_player)
@@ -68,7 +68,7 @@ def user_status(uid):
       'email': player.email,
       'admin': player.admin,
       'subscribed': player.subscribed,
-      'division': player.division
+      'team': player.team
     }
   })
 

@@ -21,8 +21,6 @@ requests = "*"
 PyJWT = "*"
 pytest = "*"
 Faker = "*"
-pytest-cov = "*"
-libsass = "*"
 
 [requires]
 python_version = "3.8"

@@ -9,7 +9,7 @@ import operator
 import app.stats_helpers as sh
 from app import db, compiler
 from app.api import api
-from app.models import Player, Game
+from app.models import Player, Game, Team
 from app.utils import authorize, authorize_id
 
 
@@ -31,6 +31,20 @@ def update_sheet(uid):
   compiler.clear_all_sheets()
 
   return jsonify(compiler.update_all_sheets())
+
+@api.route('/teams')
+@authorize
+def teams():
+  teams = db.session.query(Team).all()
+
+  teams_dict = {}
+  for team in teams:
+    teams_dict[team.id] = {
+      'abbreviation': team.abbreviation,
+      'name': team.name
+    }
+
+  return jsonify(teams_dict)
 
 
 # Query the current standings

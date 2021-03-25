@@ -12,12 +12,11 @@ class Player(db.Model):
       return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
+    team = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
     first_name = db.Column(db.String(45), index=True)
     last_name = db.Column(db.String(45), index=True)
     email = db.Column(db.String(100), index=True, unique=True)
     password = db.Column(db.String(100), nullable=True)
-    division = db.Column(db.Integer, index=True)
     admin = db.Column(db.Boolean, index=True, default=False)
     subscribed = db.Column(db.Boolean, index=True, default=True)
 
