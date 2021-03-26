@@ -22,6 +22,7 @@ def sign_up():
                         first_name=data.get('first_name'), 
                         last_name=data.get('last_name'), 
                         team=data.get('team'),
+                        captain=data.get('captain'),
                         password=generate_password_hash(data.get('password'), method='sha256'))
 
     db.session.add(new_player)
@@ -66,6 +67,7 @@ def user_status(uid):
       'first_name': player.first_name,
       'last_name': player.last_name,
       'email': player.email,
+      'captain': player.captain,
       'admin': player.admin,
       'subscribed': player.subscribed,
       'team': player.team

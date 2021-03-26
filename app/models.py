@@ -17,6 +17,7 @@ class Player(db.Model):
     last_name = db.Column(db.String(45), index=True)
     email = db.Column(db.String(100), index=True, unique=True)
     password = db.Column(db.String(100), nullable=True)
+    captain = db.Column(db.Boolean, index=True, default=False)
     admin = db.Column(db.Boolean, index=True, default=False)
     subscribed = db.Column(db.Boolean, index=True, default=True)
 
