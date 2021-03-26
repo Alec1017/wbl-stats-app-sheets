@@ -28,7 +28,7 @@ def sign_up():
     db.session.commit()
     auth_token = new_player.encode_auth_token(new_player.id)
 
-    return jsonify({'success': True, 'token': auth_token.decode()})
+    return jsonify({'success': True, 'token': auth_token})
   except Exception as e:
     return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
 
@@ -48,7 +48,7 @@ def login():
 
     auth_token = player.encode_auth_token(player.id)
 
-    return jsonify({'success': True, 'token': auth_token.decode()})
+    return jsonify({'success': True, 'token': auth_token})
   except Exception as e:
     return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
 

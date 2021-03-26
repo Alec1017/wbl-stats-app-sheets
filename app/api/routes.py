@@ -32,19 +32,20 @@ def update_sheet(uid):
 
   return jsonify(compiler.update_all_sheets())
 
+
 @api.route('/teams')
-@authorize
 def teams():
   teams = db.session.query(Team).all()
 
-  teams_dict = {}
+  teams_data = []
   for team in teams:
-    teams_dict[team.id] = {
+    teams_data.append({
+      'id': team.id,
       'abbreviation': team.abbreviation,
       'name': team.name
-    }
+    })
 
-  return jsonify(teams_dict)
+  return jsonify(teams_data)
 
 
 # Query the current standings
