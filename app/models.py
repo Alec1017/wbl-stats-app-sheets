@@ -22,7 +22,7 @@ class Player(db.Model):
     subscribed = db.Column(db.Boolean, index=True, default=True)
 
     # Relationships
-    games = db.relationship('Game', back_populates='player', foreign_keys='Game.player_id')
+    player_games = db.relationship('PlayerGame', back_populates='player', foreign_keys='PlayerGame.player_id')
 
     def encode_auth_token(self, player_id, expiration=None):
         try:
@@ -62,7 +62,24 @@ class Game(db.Model):
     __tablename__ = 'game'
 
     def __repr__(self):
-      return '<Game {}>'.format(self.id)
+      return f'<Game {self.id}>'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    team_winner_id = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
+    team_loser_id  = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
+
+    score_winner = db.Column(db.Integer, default=0)
+    score_loser  = db.Column(db.Integer, default=0)
+    total_innings = db.Column(db.Integer, default=3)
+
+
+class PlayerGame(db.Model):
+    __tablename__ = 'player_game'
+
+    def __repr__(self):
+      return f'<PlayerGame {self.id}>'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
@@ -91,16 +108,8 @@ class Game(db.Model):
     win = db.Column(db.Integer, default=0)
     loss = db.Column(db.Integer, default=0)
 
-    opponent_id = db.Column(db.Integer, db.ForeignKey('player.id'))
-    captain = db.Column(db.Boolean, index=True, default=False)
-    game_won = db.Column(db.Boolean, default=False)
-    winner_score = db.Column(db.Integer, default=0)
-    loser_score = db.Column(db.Integer, default=0)
-    total_innings = db.Column(db.Integer, default=3)
-
     # Relationships
     player = db.relationship('Player', foreign_keys=[player_id])
-    opponent = db.relationship('Player', foreign_keys=[opponent_id])
 
 
 class Team(db.Model):
@@ -112,6 +121,8 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     abbreviation = db.Column(db.String(45), index=True)
     name = db.Column(db.String(45), index=True)
+    wins = db.Column(db.Integer, default=0)
+    losses = db.Column(db.Integer, default=0)
    
     # Relationships
     players = db.relationship('Player')
