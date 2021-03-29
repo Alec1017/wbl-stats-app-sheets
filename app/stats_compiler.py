@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 
-from app.models import Game, Player
+from app.models import Game, Player, Team
 import app.stats_helpers as sh
 
 
@@ -32,13 +32,10 @@ class StatsCompiler:
       ['Game Log']
     ]
 
-    games = Game.query.options(joinedload(Game.player), joinedload(Game.opponent)).filter(Game.game_won == True).all()
+    games = Game.query.all()
 
     for game in games:
-      winner = f'{game.player.first_name} {game.player.last_name}'
-      loser = f'{game.opponent.first_name} {game.opponent.last_name}'
-      
-      log_string = f'{winner} beat {loser} {game.winner_score}-{game.loser_score} in {game.total_innings} innings on {game.created_at}'
+      log_string = f'The {game.team_winner.abbreviation} beat {game.team_loser.abbreviation} {game.winner_score}-{game.loser_score} in {game.total_innings} innings on {game.created_at}'
 
       log_values.append([log_string])
 
@@ -46,41 +43,20 @@ class StatsCompiler:
 
 
   def build_standings(self):
-    standings_values = {}
-
-    players = Player.query.options(joinedload(Player.games)).all()
-
-    for player in players:
-      games_won = 0
-      games_lost = 0
-
-      player_name = f'{player.first_name} {player.last_name}'
-
-      for game in player.games:
-        if game.captain and game.game_won:
-          games_won += 1
-
-        if game.captain and not game.game_won:
-          games_lost += 1
-
-      if standings_values.get(player.division):
-        standings_values[player.division].append([player_name, games_won, games_lost])
-      else:
-        standings_values[player.division] = [[player_name, games_won, games_lost]]
-
-
-    standings_tuple = [(div, row) for div, row in standings_values.items()] 
-    standings_tuple.sort(key=lambda standings: standings[0])
-
     final_standings = [
-      ['Player', 'W', 'L']
+      ['Team', 'W', 'L']
     ]
 
-    for division, rows in standings_tuple:
-      rows.sort(key=lambda x: x[1], reverse=True)
-      final_standings.append([f'D{division}'])
-      final_standings += rows
-      final_standings.append([])
+    standings_values = []
+
+    teams = Team.query.all()
+
+    for team in teams:
+      standings_values.append([team.name, team.wins, team.losses])
+
+    standings_values.sort(key=lambda team_row: team_row[1], reverse=True)
+
+    final_standings += standings_values
 
     return final_standings
       
@@ -94,7 +70,7 @@ class StatsCompiler:
 
     stats_values = [stats_title_row, []]
 
-    players = Player.query.options(joinedload(Player.games)).all()
+    players = Player.query.options(joinedload(Player.player_games)).all()
 
     for player in players:
       player_name = f'{player.first_name} {player.last_name}'

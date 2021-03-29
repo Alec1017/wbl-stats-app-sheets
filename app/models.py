@@ -12,7 +12,7 @@ class Player(db.Model):
       return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    team = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     first_name = db.Column(db.String(45))
     last_name = db.Column(db.String(45))
     email = db.Column(db.String(100), unique=True)
@@ -22,8 +22,8 @@ class Player(db.Model):
     subscribed = db.Column(db.Boolean, default=True)
 
     # Relationships
-    player_games = db.relationship('PlayerGame', back_populates='player')
-    team = db.relationship('Team', back_populates='players')
+    player_games = db.relationship('PlayerGame', back_populates='player', foreign_keys='PlayerGame.player_id')
+    team = db.relationship('Team', back_populates='players', foreign_keys=[team_id])
 
     def encode_auth_token(self, player_id, expiration=None):
         try:
@@ -76,7 +76,9 @@ class Game(db.Model):
     total_innings = db.Column(db.Integer, default=3)
 
     # Relationships
-    player_games = db.relationship('PlayerGame', back_populates='game')
+    player_games = db.relationship('PlayerGame', back_populates='game', foreign_keys='PlayerGame.game_id')
+    team_winner = db.relationship('Team', foreign_keys=[team_winner_id])
+    team_loser = db.relationship('Team', foreign_keys=[team_loser_id])
 
 
 class PlayerGame(db.Model):
@@ -114,8 +116,8 @@ class PlayerGame(db.Model):
     loss = db.Column(db.Integer, default=0)
 
     # Relationships
-    player = db.relationship('Player', back_populates='player_games')
-    game = db.relationship('Game', back_populates='player_games')
+    player = db.relationship('Player', back_populates='player_games', foreign_keys=[player_id])
+    game = db.relationship('Game', back_populates='player_games', foreign_keys=[game_id])
 
 
 class Team(db.Model):
@@ -131,4 +133,4 @@ class Team(db.Model):
     losses = db.Column(db.Integer, default=0)
    
     # Relationships
-    players = db.relationship('Player', back_populates='team')
+    players = db.relationship('Player', back_populates='team', foreign_keys='Player.team_id')
