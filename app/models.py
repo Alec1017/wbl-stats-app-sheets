@@ -12,17 +12,18 @@ class Player(db.Model):
       return '<Player {} {} {}>'.format(self.id, self.first_name, self.last_name)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    team = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
-    first_name = db.Column(db.String(45), index=True)
-    last_name = db.Column(db.String(45), index=True)
-    email = db.Column(db.String(100), index=True, unique=True)
+    team = db.Column(db.Integer, db.ForeignKey('team.id'))
+    first_name = db.Column(db.String(45))
+    last_name = db.Column(db.String(45))
+    email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100), nullable=True)
-    captain = db.Column(db.Boolean, index=True, default=False)
-    admin = db.Column(db.Boolean, index=True, default=False)
-    subscribed = db.Column(db.Boolean, index=True, default=True)
+    captain = db.Column(db.Boolean, default=False)
+    admin = db.Column(db.Boolean, default=False)
+    subscribed = db.Column(db.Boolean, default=True)
 
     # Relationships
-    player_games = db.relationship('PlayerGame', back_populates='player', foreign_keys='PlayerGame.player_id')
+    player_games = db.relationship('PlayerGame', back_populates='player')
+    team = db.relationship('Team', back_populates='players')
 
     def encode_auth_token(self, player_id, expiration=None):
         try:
@@ -65,14 +66,17 @@ class Game(db.Model):
       return f'<Game {self.id}>'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    team_winner_id = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
-    team_loser_id  = db.Column(db.Integer, db.ForeignKey('team.id'), index=True)
+    team_winner_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team_loser_id  = db.Column(db.Integer, db.ForeignKey('team.id'))
 
     score_winner = db.Column(db.Integer, default=0)
     score_loser  = db.Column(db.Integer, default=0)
     total_innings = db.Column(db.Integer, default=3)
+
+    # Relationships
+    player_games = db.relationship('PlayerGame', back_populates='game')
 
 
 class PlayerGame(db.Model):
@@ -82,8 +86,9 @@ class PlayerGame(db.Model):
       return f'<PlayerGame {self.id}>'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), index=True)
-    created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     singles = db.Column(db.Integer, default=0)
     doubles = db.Column(db.Integer, default=0)
@@ -109,7 +114,8 @@ class PlayerGame(db.Model):
     loss = db.Column(db.Integer, default=0)
 
     # Relationships
-    player = db.relationship('Player', foreign_keys=[player_id])
+    player = db.relationship('Player', back_populates='player_games')
+    game = db.relationship('Game', back_populates='player_games')
 
 
 class Team(db.Model):
@@ -119,10 +125,10 @@ class Team(db.Model):
       return f'<Team {self.id} {self.name}>'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    abbreviation = db.Column(db.String(45), index=True)
-    name = db.Column(db.String(45), index=True)
+    abbreviation = db.Column(db.String(45))
+    name = db.Column(db.String(45))
     wins = db.Column(db.Integer, default=0)
     losses = db.Column(db.Integer, default=0)
    
     # Relationships
-    players = db.relationship('Player')
+    players = db.relationship('Player', back_populates='team')

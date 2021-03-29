@@ -18,8 +18,8 @@ export FLASK_ENV=$mode
 
 if [[ $mode == "development" ]]
 then
-    flask db migrate -m "$message" --directory=test_migrations
-    flask db upgrade --directory=test_migrations
+    flask db migrate -m "$message" --directory=migrations_test
+    flask db upgrade --directory=migrations_test
 else
     flask db migrate -m "$message"
     flask db upgrade
