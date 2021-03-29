@@ -40,7 +40,6 @@ def create_app(config_class=Development):
     emailer.init_app(app)
     compiler.init_app(app, slack_bot, emailer)
 
-
     # register blueprints
     from app.api import api
     app.register_blueprint(api, url_prefix='/api')

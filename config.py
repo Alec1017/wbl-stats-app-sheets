@@ -55,9 +55,9 @@ class Development(BaseConfig):
 
     MUTE_EMAIL_NOTIFICATIONS = True
   
-    # Enable the TESTING flag to disable the error catching during request handling
-    # so that you get better error reports when performing test requests against the application.
+    # Disables the error catching during request handling
+    # Allows for better error reports when performing test requests against the application.
     TESTING = True
   
-    # Disable CSRF tokens in the Forms (only valid for testing purposes!)
+    # Disable CSRF tokens in the Forms
     WTF_CSRF_ENABLED = False
