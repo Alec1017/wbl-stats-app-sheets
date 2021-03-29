@@ -211,7 +211,7 @@ def leaderboard(stat):
 
 
 # Add a game to the database
-@api.route('/add_game', methods=['POST'])
+@api.route('/add_player_game', methods=['POST'])
 @authorize
 def add_game():
     try:
@@ -227,6 +227,26 @@ def add_game():
 
         # create the player game and game at the same time
         # push game first, then push player game so they can reference each other
+
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Something went wrong. Try submitting again.'})
+
+
+@api.route('/add_game', methods=['POST'])
+@authorize
+def add_game():
+    try:
+        data = request.get_json()
+
+        data['player_games'] = None
+        data['team_winner']  = None
+        data['team_loser']   = None
+
+        game = Game(**data)
+
+        db.session.add(game)
+        db.session.commit()
 
         return jsonify({'success': True})
     except Exception as e:

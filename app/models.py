@@ -66,7 +66,7 @@ class Game(db.Model):
       return f'<Game {self.id}>'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime)
 
     team_winner_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team_loser_id  = db.Column(db.Integer, db.ForeignKey('team.id'))

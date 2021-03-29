@@ -109,7 +109,7 @@ class StatsCompiler:
             stats_sheet_row = []
 
             # Summing up all the stats for a player
-            for stats in player.games: 
+            for stats in player.player_games: 
                 singles += stats.singles
                 doubles += stats.doubles
                 triples += stats.triples
