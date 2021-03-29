@@ -48,49 +48,26 @@ def teams():
   return jsonify(teams_data)
 
 
+# Query a list of opponent teams
+@api.route('/opponents')
+@authorize_id
+def opponents(team_id):
+  teams = Team.query.filter(Team.id != team_id).all()
+  all_teams = [{'id': team.id, 'name': team.abbreviation} for team in teams]
+
+  return jsonify(all_teams)
+
+
 # Query the current standings
 @api.route('/standings')
 @authorize
 def standings():
-  standings_dict = {}
+  teams = Team.query.all()
+  standings = [{'id': team.id, 'name': team.name, 'wins': team.wins, 'losses': team.losses} for team in teams]
 
-  wins_case = case(
-    [(and_(Game.game_won == True, Game.captain == True), 1)],
-    else_=0
-  )
+  standings.sort(key=lambda team: team['wins'], reverse=True)
 
-  losses_case = case(
-    [(and_(Game.game_won == False, Game.captain == True), 1)],
-    else_=0
-  )
-
-  standings = db.session.query(Player.division, 
-                               Player.first_name, 
-                               Player.last_name, 
-                               func.sum(wins_case).label('wins'), 
-                               func.sum(losses_case).label('losses')) \
-                .join(Game, Player.id == Game.player_id) \
-                .group_by(Player.id).all()
-
-  for division, first_name, last_name, wins, losses in standings:
-    full_name = '{} {}'.format(first_name, last_name)
-
-    if standings_dict.get(division):
-      standings_dict[division].append([full_name, int(wins), int(losses)])
-    else:
-      standings_dict[division] = [[full_name, int(wins), int(losses)]]
-  
-  return jsonify(standings_dict)
-
-
-# Query a list of opponents names
-@api.route('/opponents')
-@authorize_id
-def opponents(uid):
-  opponents = db.session.query(Player.id, Player.first_name, Player.last_name).filter(Player.id != uid).all()
-  full_name_opponents = [(player_id, '{} {}'.format(first_name, last_name)) for player_id, first_name, last_name in opponents]
-
-  return jsonify(full_name_opponents)
+  return jsonify(standings)
 
 
 # Query batting average analytics data
@@ -219,7 +196,7 @@ def leaderboard(stat):
   leaderboard = db.session.query(Player.first_name, 
                              Player.last_name,
                              func.sum(singular_stats.get(stat))) \
-                .join(Game, Player.id == Game.player_id) \
+                .join(PlayerGame, Player.id == PlayerGame.player_id) \
                 .group_by(Player.id).all()
 
   results = []
@@ -247,6 +224,9 @@ def add_game():
 
     db.session.add(game)
     db.session.commit()
+
+    # create the player game and game at the same time
+    # push game first, then push player game so they can reference each other
 
     return jsonify({'success': True})
   except Exception as e:
