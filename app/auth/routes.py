@@ -21,7 +21,7 @@ def sign_up():
     new_player = Player(email=data.get('email'), 
                         first_name=data.get('first_name'), 
                         last_name=data.get('last_name'), 
-                        team=data.get('team'),
+                        team_id=data.get('team'),
                         captain=data.get('captain'),
                         password=generate_password_hash(data.get('password'), method='sha256'))
 
@@ -70,7 +70,7 @@ def user_status(uid):
       'captain': player.captain,
       'admin': player.admin,
       'subscribed': player.subscribed,
-      'team': player.team
+      'team_id': player.team_id
     }
   })
 
