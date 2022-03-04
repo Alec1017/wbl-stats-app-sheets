@@ -76,7 +76,7 @@ class StatsBuilder:
   
   def send_emails(self):
     for name, email in self.email_list:
-      send_email(name, '2020 WBL Stats', email)
+      send_email(name, '{} WBL Stats'.format(datetime.now().year), email)
     
     self.email_list = []
 

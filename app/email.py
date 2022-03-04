@@ -1,6 +1,7 @@
 import requests
 import random
 import datetime
+from pytz import timezone
 
 from app import email_address, email_password, spreadsheet_id, mailgun_api_token
 
@@ -56,7 +57,7 @@ Hope you enjoy the rest of your {}.
 
 Sincerely,
 Rand
-""".format(name, spreadsheet_id, random_fun_facts[random_index], datetime.datetime.today().strftime('%A'))
+""".format(name, spreadsheet_id, random_fun_facts[random_index], datetime.datetime.now(timezone('US/Eastern')).strftime('%A'))
 
   try:
     requests.post(
