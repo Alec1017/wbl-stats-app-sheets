@@ -213,7 +213,7 @@ def leaderboard(stat):
 # Add a game to the database
 @api.route('/add_player_game', methods=['POST'])
 @authorize
-def add_game():
+def add_player_game():
     try:
         data = request.get_json()
 

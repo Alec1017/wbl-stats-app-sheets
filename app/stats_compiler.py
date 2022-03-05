@@ -58,7 +58,7 @@ class StatsCompiler:
 
         final_standings += standings_values
 
-      return final_standings
+        return final_standings
       
 
     def build_stats(self):
